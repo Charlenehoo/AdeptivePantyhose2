@@ -3,7 +3,7 @@ set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
 set(SOURCE_DIR "${ROOT_DIR}/src")
 set(SOURCE_FILES
 	"${SOURCE_DIR}/main.cpp"
-	"${SOURCE_DIR}/PCH.h"
+	# "${SOURCE_DIR}/PCH.h"
 )
 
 source_group(TREE "${ROOT_DIR}" FILES ${SOURCE_FILES})
@@ -83,11 +83,11 @@ target_link_libraries(
 		CommonLibSSE::CommonLibSSE
 )
 
-target_precompile_headers(
-	"${PROJECT_NAME}"
-	PRIVATE
-		"${SOURCE_DIR}/PCH.h"
-)
+# target_precompile_headers(
+# 	"${PROJECT_NAME}"
+# 	PRIVATE
+# 		"${SOURCE_DIR}/PCH.h"
+# )
 
 install(
 	FILES
