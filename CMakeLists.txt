@@ -24,6 +24,11 @@ endif()
 
 option(COPY_OUTPUT "copy the output of build operations to the game directory" OFF)
 
+option(BUILD_SKYRIMAE "Build for Skyrim AE" ON)
+if(BUILD_SKYRIMAE)
+    add_compile_definitions(SKYRIM_AE SKYRIM_SUPPORT_AE)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 add_subdirectory(src)

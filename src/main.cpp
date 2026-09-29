@@ -53,6 +53,25 @@ void OnMessage(SKSE::MessagingInterface::Message* msg) {
 
 }  // namespace
 
+SKSE_PLUGIN_VERSION = []() {
+    SKSE::PluginVersionData v;
+    v.PluginVersion(
+        REL::Version{Version::MAJOR, Version::MINOR, Version::PATCH});
+    v.PluginName("powerofthree's Tweaks");
+    v.AuthorName("powerofthree");
+    v.UsesAddressLibrary();
+    v.UsesUpdatedStructs();
+    v.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST});
+
+    if constexpr (SKSE::RUNTIME_SSE_LATEST < Runtime::MIN_ADDRESS_LIBRARY_V5) {
+        v.MinimumRequiredXSEVersion(REL::Version{2, 2, 5});
+    } else {
+        v.MinimumRequiredXSEVersion(REL::Version{2, 3, 0});
+    }
+
+    return v;
+}();
+
 SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
     ::MessageBoxW(nullptr, L"SKSEPlugin_Load reached", L"AdeptivePantyhose2",
                   MB_OK | MB_ICONINFORMATION);
