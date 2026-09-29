@@ -7,8 +7,4 @@
 #include <spdlog/spdlog.h>
 #pragma warning(pop)
 
-using namespace std::literals;
-
-namespace logger = SKSE::log;
-
 #include "Plugin.h"

@@ -1,2 +1,20 @@
 CompileFlags:
   CompilationDatabase: build/debug
+  Compiler: clang-cl
+  Remove:
+    - /MP
+    - /nologo
+    - /TP
+    - /FS
+    - /showIncludes
+    - /wd*
+    - /we*
+    - /Yc*
+    - /Yu*
+    - /Fp*
+    - /FI*
+  Add:
+    - -std=c++23
+
+Diagnostics:
+  UnusedIncludes: None
