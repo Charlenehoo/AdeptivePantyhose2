@@ -1,0 +1,34 @@
+{
+    "by_ext": {
+        ".lua": "lua",
+        ".py": "python",
+        ".md": "markdown",
+        ".txt": "text",
+        ".json": "json",
+        ".jsonc": "jsonc",
+        ".yml": "yaml",
+        ".yaml": "yaml",
+        ".toml": "toml",
+        ".sh": "bash",
+        ".bat": "batch",
+        ".cmd": "batch",
+        ".ps1": "powershell",
+        ".c": "c",
+        ".h": "c",
+        ".cpp": "cpp",
+        ".hpp": "cpp",
+        ".cc": "cpp",
+        ".js": "javascript",
+        ".ts": "typescript",
+        ".html": "html",
+        ".css": "css",
+        ".xml": "xml",
+        ".ini": "ini",
+        ".cfg": "ini"
+    },
+    "by_name": {
+        ".editorconfig": "ini",
+        ".gitignore": "text",
+        ".gitattributes": "text"
+    }
+}
