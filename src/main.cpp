@@ -3,9 +3,15 @@
 #include "BodyMorphManager/BodyMorphManager.h"
 #include "EventProcessor/EventProcessor.h"
 
+#include <Windows.h>
+#ifdef ERROR
+#undef ERROR
+#endif
+
 namespace {
 
 bool OnPostPostLoad() {
+    RE::ConsoleLog::GetSingleton()->Print("Hello world");
     SKSE_LOG_TRACE("kPostPostLoad: initializing BodyMorphManager");
     if (!BodyMorphManager::GetSingleton().Init()) {
         SKSE_LOG_ERROR("BodyMorphManager init failed");
@@ -48,17 +54,18 @@ void OnMessage(SKSE::MessagingInterface::Message* msg) {
 }  // namespace
 
 SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
+    ::MessageBoxW(nullptr, L"SKSEPlugin_Load reached", L"AdeptivePantyhose2",
+                  MB_OK | MB_ICONINFORMATION);
+
     SKSE::Init(skse);
 
     auto messagingInterface = SKSE::GetMessagingInterface();
     if (!messagingInterface) {
         SKSE_LOG_CRITICAL("Failed to get messaging interface");
-        return false;
     }
 
     if (!messagingInterface->RegisterListener(OnMessage)) {
         SKSE_LOG_CRITICAL("Failed to register message listener");
-        return false;
     }
 
     SKSE_LOG_INFO("Plugin loaded successfully");
