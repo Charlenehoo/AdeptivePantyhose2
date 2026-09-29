@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.22)
 
 project(
-	ExampleProject
-	VERSION 1.0.0
+	AdeptivePantyhose2
+	VERSION 2.0.0
 	LANGUAGES CXX
 )
 set(PROJECT_AUTHOR "CharleneHoo" CACHE STRING "Plugin author")
