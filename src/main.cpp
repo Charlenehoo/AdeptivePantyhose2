@@ -6,7 +6,6 @@
 namespace {
 
 bool OnPostPostLoad() {
-    RE::ConsoleLog::GetSingleton()->Print("Hello world");
     SKSE_LOG_TRACE("kPostPostLoad: initializing BodyMorphManager");
     if (!BodyMorphManager::GetSingleton().Init()) {
         SKSE_LOG_ERROR("BodyMorphManager init failed");
@@ -16,6 +15,7 @@ bool OnPostPostLoad() {
 }
 
 void OnDataLoaded() {
+    RE::ConsoleLog::GetSingleton()->Print("Hello world");
     SKSE_LOG_TRACE("kDataLoaded: loading config and registering sinks");
 
     auto& processor = EventProcessor::GetSingleton();
@@ -58,23 +58,18 @@ SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
     SKSE::Init(skse, SKSE::InitInfo{
                          .log = true,
                          .logLevel = kLogLevel,
-                         .logName = "AdeptivePantyhose",
-                         .logRotate = 5 * 1024 * 1024,
-                         .trampoline = false,
-                         .trampolineSize = 0,
-                         .hook = true,
                      });
 
     auto* messagingInterface = SKSE::GetMessagingInterface();
     if (!messagingInterface) {
-        SKSE_LOG_FAIL("Failed to get messaging interface");
+        SKSE_LOG_CRITICAL("Failed to get messaging interface");
+        return false;
     }
 
     if (!messagingInterface->RegisterListener(OnMessage)) {
-        SKSE_LOG_FAIL("Failed to register message listener");
+        SKSE_LOG_CRITICAL("Failed to register message listener");
+        return false;
     }
-
-    SKSE_LOG_INFO("{} v{} loaded", Plugin::NAME, Plugin::VERSION.string());
     return true;
 }
 
