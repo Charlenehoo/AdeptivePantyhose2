@@ -10,5 +10,7 @@ SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
     holder->AddEventSink<RE::TESEquipEvent>(&processor);
     holder->AddEventSink<RE::TESObjectLoadedEvent>(&processor);
 
+    REX::INFO(Plugin::NAME, "Init");
+
     return true;
 }

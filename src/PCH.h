@@ -8,3 +8,4 @@
 #pragma warning(pop)
 
 #include "Plugin.h"
+#include "SKSE/Logger.h"
