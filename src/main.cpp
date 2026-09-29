@@ -1,4 +1,5 @@
 #include "PCH.h"
+
 #include "EventProcessor/EventProcessor.h"
 
 SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
