@@ -1,0 +1,8 @@
+{
+    "clangd.arguments": [
+        "--query-driver=C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/**/bin/Hostx64/x64/cl.exe",
+        "--background-index",
+        "--clang-tidy=false"
+    ],
+    "clangd.onConfigChanged": "restart"
+}

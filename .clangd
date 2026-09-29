@@ -1,0 +1,20 @@
+CompileFlags:
+  CompilationDatabase: build/debug
+  Remove:
+    - -external:*
+    - /Zc:*
+    - /permissive-*
+    - /W4
+    - /WX
+    - /MP
+    - /sdl
+    - /utf-8
+    - /EHsc
+    - /wd*
+    - /we*
+    - --driver-mode=cl
+Diagnostics:
+  Suppress:
+    - -Wunknown-argument
+Index:
+  Background: Build
