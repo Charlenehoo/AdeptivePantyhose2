@@ -1,0 +1,200 @@
+---
+# ============================================================
+#  Clang-Tidy 学究配置 for CommonLibSSE/SKSE plugins
+#  跑法: clang-tidy -p build/debug --extra-arg=-fms-extensions src/*.cpp
+# ============================================================
+
+Checks: >
+  # ---- 先全关，再按家族开 ----
+  -*,
+
+  # ---- 静态分析（最值钱，误报少） ----
+  clang-analyzer-*,
+
+  # ---- bug 猎手 ----
+  bugprone-*,
+
+  # ---- 性能 ----
+  performance-*,
+
+  # ---- 现代化 ----
+  modernize-*,
+
+  # ---- 可移植性 ----
+  portability-*,
+
+  # ---- 杂项 ----
+  misc-*,
+
+  # ---- C++ Core Guidelines ----
+  cppcoreguidelines-*,
+
+  # ---- 可读性 ----
+  readability-*,
+
+  # ============================================================
+  #  关闭：跟 CommonLibSSE / SKSE / MSVC 冲突的
+  # ============================================================
+
+  # --- 宏风格冲突：SKSE_PLUGIN_LOAD 之类 ---
+  -bugprone-macro-parentheses,
+  -cppcoreguidelines-macro-usage,
+  -misc-unused-parameters,
+
+  # --- MSVC 特有语法误报 ---
+  -bugprone-reserved-identifier,
+  -bugprone-narrowing-conversions,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -cppcoreguidelines-avoid-c-arrays,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-type-union-access,
+  -cppcoreguidelines-pro-type-const-cast,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-no-malloc,
+
+  # --- 跟游戏 mod 代码风格冲突 ---
+  -modernize-use-trailing-return-type,        # 你已经在用了，反而别让别的 check 干扰
+  -modernize-return-braced-init-list,
+  -modernize-use-nodiscard,
+  -modernize-use-auto,
+  -modernize-avoid-c-arrays,
+  -readability-magic-numbers,                  # 图形/数值代码里全是 magic number
+  -readability-identifier-length,              # 不喜欢 p, v, n 这种短名
+  -readability-function-cognitive-complexity,  # 事件处理逻辑容易超
+  -readability-convert-member-functions-to-static,
+  -readability-avoid-const-params-in-decls,
+  -readability-else-after-return,
+  -readability-implicit-bool-conversion,       # RE:: 里一堆 BOOL，会爆炸
+  -readability-non-const-parameter,
+  -readability-qualified-auto,
+  -readability-uppercase-literal-suffix,       # 你写的是 0.0f 不是 0.0F
+
+  # --- 头文件里不该出现的 ---
+  -llvm-header-guard,                          # 你用 #pragma once
+  -llvm-include-order,
+
+  # --- misc 里太吵的 ---
+  -misc-non-private-member-variables-in-classes,
+  -misc-no-recursion,
+
+  # --- cppcoreguidelines 里对老代码太严的 ---
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-init-variables,
+  -cppcoreguidelines-avoid-do-while,
+
+  # --- 会跟 vcpkg / spdlog 打架的 ---
+  -bugprone-easily-swappable-parameters,
+  -bugprone-implicit-widening-of-multiplication-result,
+
+WarningsAsErrors: ''
+
+# 只分析 src/ 下的头文件，别碰 vcpkg / CommonLibSSE
+HeaderFilterRegex: '.*[\\/]src[\\/].*'
+
+# 排除 vcpkg / external
+ExcludeHeaderFilterRegex: '.*(external|vcpkg_installed|build)[\\/].*'
+
+# 别去分析系统头
+SystemHeaders: false
+
+CheckOptions:
+  # ============================================================
+  #  命名规范（匹配你现有代码风格）
+  # ============================================================
+
+  # 类 / 结构体 / 枚举：CamelCase
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.UnionCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypedefCase
+    value: CamelCase
+
+  # 函数 / 方法：CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+  - key: readability-identifier-naming.MethodCase
+    value: CamelCase
+
+  # 局部变量 / 参数：camelBack
+  - key: readability-identifier-naming.VariableCase
+    value: camelBack
+  - key: readability-identifier-naming.ParameterCase
+    value: camelBack
+  - key: readability-identifier-naming.LocalVariableCase
+    value: camelBack
+
+  # 成员变量：camelBack + m_ 前缀
+  - key: readability-identifier-naming.MemberCase
+    value: camelBack
+  - key: readability-identifier-naming.PrivateMemberCase
+    value: camelBack
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: 'm_'
+  - key: readability-identifier-naming.ProtectedMemberPrefix
+    value: 'm_'
+
+  # 常量：CamelCase + k 前缀（kLogLevel 风格）
+  - key: readability-identifier-naming.ConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.ConstantPrefix
+    value: 'k'
+  - key: readability-identifier-naming.ConstexprVariableCase
+    value: CamelCase
+  - key: readability-identifier-naming.ConstexprVariablePrefix
+    value: 'k'
+
+  # 全局变量：g_ 前缀（虽然你不太用）
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: camelBack
+  - key: readability-identifier-naming.GlobalVariablePrefix
+    value: 'g_'
+
+  # 宏：UPPER_CASE（SKSE_LOG_TRACE 风格）
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
+
+  # 枚举常量：k 前缀 + CamelCase
+  - key: readability-identifier-naming.EnumConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumConstantPrefix
+    value: 'k'
+
+  # ============================================================
+  #  其他 check 选项
+  # ============================================================
+
+  # 现代 C++ 提示用 C++20 语法
+  - key: modernize-use-override.IgnoreDestructors
+    value: false
+  - key: modernize-loop-convert.MaxCopySize
+    value: 16
+  - key: modernize-loop-convert.MinConfidence
+    value: reasonable
+  - key: modernize-pass-by-value.IncludeStyle
+    value: llvm
+  - key: modernize-replace-auto-ptr.IncludeStyle
+    value: llvm
+  - key: modernize-use-nullptr.NullMacros
+    value: 'NULL'
+
+  # 不要建议加 [[nodiscard]]（CommonLibSSE 里大多不该加）
+  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value: true
+
+  # 让 readability-else-after-return 允许 else if
+  - key: readability-else-after-return.WarnOnConditionVariables
+    value: false
+
+  # include cleaner
+  - key: misc-include-cleaner.IgnoreHeaders
+    value: 'RE/.*;REL/.*;SKSE/.*;REX/.*;spdlog/.*;fmt/.*'
