@@ -1,18 +1,66 @@
 #include "PCH.h"
 
+#include "BodyMorphManager/BodyMorphManager.h"
 #include "EventProcessor/EventProcessor.h"
+
+namespace {
+
+bool OnPostPostLoad() {
+    SKSE_LOG_TRACE("kPostPostLoad: initializing BodyMorphManager");
+    if (!BodyMorphManager::GetSingleton().Init()) {
+        SKSE_LOG_ERROR("BodyMorphManager init failed");
+        return false;
+    }
+    return true;
+}
+
+void OnDataLoaded() {
+    SKSE_LOG_TRACE("kDataLoaded: loading config and registering sinks");
+
+    auto& processor = EventProcessor::GetSingleton();
+
+    auto* holder = RE::ScriptEventSourceHolder::GetSingleton();
+    if (!holder) {
+        SKSE_LOG_ERROR("ScriptEventSourceHolder unavailable");
+        return;
+    }
+
+    holder->AddEventSink<RE::TESEquipEvent>(&processor);
+    holder->AddEventSink<RE::TESObjectLoadedEvent>(&processor);
+    SKSE_LOG_INFO("Event sinks registered");
+}
+
+void OnMessage(SKSE::MessagingInterface::Message* msg) {
+    if (!msg) return;
+
+    switch (msg->type) {
+        case SKSE::MessagingInterface::kPostPostLoad:
+            OnPostPostLoad();
+            break;
+        case SKSE::MessagingInterface::kDataLoaded:
+            OnDataLoaded();
+            break;
+        default:
+            break;
+    }
+}
+
+}  // namespace
 
 SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
     SKSE::Init(skse);
 
-    auto& processor = EventProcessor::GetSingleton();
-    auto* holder = RE::ScriptEventSourceHolder::GetSingleton();
-    holder->AddEventSink<RE::TESEquipEvent>(&processor);
-    holder->AddEventSink<RE::TESObjectLoadedEvent>(&processor);
+    auto messagingInterface = SKSE::GetMessagingInterface();
+    if (!messagingInterface) {
+        SKSE_LOG_CRITICAL("Failed to get messaging interface");
+        return false;
+    }
 
-    SKSE_LOG_TRACE(Plugin::NAME, "Init");
+    if (!messagingInterface->RegisterListener(OnMessage)) {
+        SKSE_LOG_CRITICAL("Failed to register message listener");
+        return false;
+    }
 
-    SKSE_LOG_CRITICAL(Plugin::NAME, "Init");
-
+    SKSE_LOG_INFO("Plugin loaded successfully");
     return true;
 }
