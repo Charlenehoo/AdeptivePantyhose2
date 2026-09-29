@@ -9,3 +9,10 @@
 
 #include "Plugin.h"
 #include "SKSE/Logger.h"
+
+#define SKSE_LOG_TRACE(...) REX::TRACE(__VA_ARGS__)
+#define SKSE_LOG_DEBUG(...) REX::DEBUG(__VA_ARGS__)
+#define SKSE_LOG_INFO(...) REX::INFO(__VA_ARGS__)
+#define SKSE_LOG_WARN(...) REX::WARN(__VA_ARGS__)
+#define SKSE_LOG_ERROR(...) REX::ERROR(__VA_ARGS__)
+#define SKSE_LOG_CRITICAL(...) REX::CRITICAL(__VA_ARGS__)
