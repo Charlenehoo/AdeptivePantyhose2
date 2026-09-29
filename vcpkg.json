@@ -1,9 +1,6 @@
 {
-  "name": "example",
-  "version": "1",
-  "dependencies": [
-    "boost-stl-interfaces",
-    "rsm-binary-io",
-    "spdlog"
-  ]
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "adeptive-pantyhose",
+  "version-string": "2.0.0",
+  "dependencies": ["commonlib-shared", "spdlog[wchar]", "nlohmann-json"]
 }
