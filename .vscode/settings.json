@@ -1,0 +1,69 @@
+{
+  // ============================================================
+  // C/C++ IntelliSense (cpptools)
+  // ============================================================
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build/debug/compile_commands.json",
+  "C_Cpp.default.cppStandard": "c++23",
+  "C_Cpp.default.cStandard": "c17",
+  "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
+  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.errorSquiggles": "enabled",
+
+  // ============================================================
+  // cpptools 内置的 clang-tidy 集成
+  // ============================================================
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+  "C_Cpp.codeAnalysis.clangTidy.runAutomatically": true,
+  "C_Cpp.codeAnalysis.clangTidy.useBuildPath": true,
+  "C_Cpp.codeAnalysis.clangTidy.path": "C:/Users/CharleneHoo/Apps/Scoop/apps/llvm/current/bin/clang-tidy.exe",
+  "C_Cpp.codeAnalysis.clangTidy.checks": "readability-*",
+  "C_Cpp.codeAnalysis.clangTidy.headerFilter": "src/.*",
+  "C_Cpp.codeAnalysis.clangTidy.args": ["--extra-arg=-std=c++23"],
+
+  // ============================================================
+  // 性能：排除 build / external / vcpkg_installed
+  // ============================================================
+  "C_Cpp.files.exclude": {
+    "**/.vscode": true,
+    "**/build/**": true,
+    "**/external/**": true,
+    "**/vcpkg_installed/**": true
+  },
+  "files.watcherExclude": {
+    "**/build/**": true,
+    "**/external/**": true,
+    "**/vcpkg_installed/**": true
+  },
+  "search.exclude": {
+    "**/build/**": true,
+    "**/external/**": true,
+    "**/vcpkg_installed/**": true
+  },
+
+  // ============================================================
+  // 编辑器基础
+  // ============================================================
+  "files.associations": {
+    "*.in": "cpp",
+    "*.hxx": "cpp",
+    "*.tpp": "cpp"
+  },
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.eol": "\n",
+
+  // ============================================================
+  // 格式化：交给 .clang-format
+  // ============================================================
+  "C_Cpp.formatting": "clangFormat",
+  "C_Cpp.clang_format_style": "file",
+  "C_Cpp.clang_format_fallbackStyle": "Google",
+  "[cpp]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools",
+    "editor.formatOnSave": false
+  },
+  "[c]": {
+    "editor.defaultFormatter": "ms-vscode.cpptools",
+    "editor.formatOnSave": false
+  }
+}
