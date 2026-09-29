@@ -6,26 +6,26 @@
     "minor": 31,
     "patch": 0
   },
-
   "configurePresets": [
     {
       "name": "base",
       "hidden": true,
-
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
-
-      "architecture": { "value": "x64", "strategy": "external" },
-
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "cl",
         "CMAKE_CXX_FLAGS": "/EHsc /MP /W4 /WX",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_TARGET_TRIPLET": "x64-windows-static-md",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_AR": "lib.exe",
+        "CMAKE_RANLIB": "lib.exe"
       },
-
       "warnings": {
         "deprecated": true,
         "dev": true
@@ -34,24 +34,38 @@
         "deprecated": true
       }
     },
-
     {
       "name": "debug",
-      "inherits": ["base"],
+      "inherits": [
+        "base"
+      ],
       "displayName": "Debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "COPY_OUTPUT": "ON"
       }
     },
-
     {
       "name": "release",
-      "inherits": ["base"],
+      "inherits": [
+        "base"
+      ],
       "displayName": "Release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "configuration": "Release"
     }
   ]
 }
