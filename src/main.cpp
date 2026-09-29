@@ -3,11 +3,6 @@
 #include "BodyMorphManager/BodyMorphManager.h"
 #include "EventProcessor/EventProcessor.h"
 
-#include <Windows.h>
-#ifdef ERROR
-#undef ERROR
-#endif
-
 namespace {
 
 bool OnPostPostLoad() {
@@ -51,24 +46,37 @@ void OnMessage(SKSE::MessagingInterface::Message* msg) {
     }
 }
 
+#ifdef NDEBUG
+constexpr REX::ELogLevel kLogLevel = REX::ELogLevel::Info;
+#else
+constexpr REX::ELogLevel kLogLevel = REX::ELogLevel::Trace;
+#endif
+
 }  // namespace
 
 SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
-    ::MessageBoxW(nullptr, L"SKSEPlugin_Load reached", L"AdeptivePantyhose2",
-                  MB_OK | MB_ICONINFORMATION);
+    SKSE::Init(skse, SKSE::InitInfo{
+                         .log = true,
+                         .logLevel = kLogLevel,
+                         .logName = "AdeptivePantyhose",
+                         .logRotate = 5 * 1024 * 1024,
+                         .trampoline = false,
+                         .trampolineSize = 0,
+                         .hook = true,
+                     });
 
-    SKSE::Init(skse);
-
-    auto messagingInterface = SKSE::GetMessagingInterface();
-    if (!messagingInterface) {
+    auto* messaging = SKSE::GetMessagingInterface();
+    if (!messaging) {
         SKSE_LOG_CRITICAL("Failed to get messaging interface");
+        return false;
     }
 
-    if (!messagingInterface->RegisterListener(OnMessage)) {
+    if (!messaging->RegisterListener(OnMessage)) {
         SKSE_LOG_CRITICAL("Failed to register message listener");
+        return false;
     }
 
-    SKSE_LOG_INFO("Plugin loaded successfully");
+    SKSE_LOG_INFO("{} v{} loaded", Plugin::NAME, Plugin::VERSION.string());
     return true;
 }
 
