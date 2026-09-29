@@ -65,15 +65,13 @@ SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
                          .hook = true,
                      });
 
-    auto* messaging = SKSE::GetMessagingInterface();
-    if (!messaging) {
-        SKSE_LOG_CRITICAL("Failed to get messaging interface");
-        return false;
+    auto* messagingInterface = SKSE::GetMessagingInterface();
+    if (!messagingInterface) {
+        SKSE_LOG_FAIL("Failed to get messaging interface");
     }
 
-    if (!messaging->RegisterListener(OnMessage)) {
-        SKSE_LOG_CRITICAL("Failed to register message listener");
-        return false;
+    if (!messagingInterface->RegisterListener(OnMessage)) {
+        SKSE_LOG_FAIL("Failed to register message listener");
     }
 
     SKSE_LOG_INFO("{} v{} loaded", Plugin::NAME, Plugin::VERSION.string());

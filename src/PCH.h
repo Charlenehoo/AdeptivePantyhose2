@@ -16,3 +16,4 @@
 #define SKSE_LOG_WARN(...) REX::WARN(__VA_ARGS__)
 #define SKSE_LOG_ERROR(...) REX::ERROR(__VA_ARGS__)
 #define SKSE_LOG_CRITICAL(...) REX::CRITICAL(__VA_ARGS__)
+#define SKSE_LOG_FAIL(...) REX::FAIL(__VA_ARGS__)
