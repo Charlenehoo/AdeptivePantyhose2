@@ -21,8 +21,8 @@
         "CMAKE_CXX_COMPILER": "cl",
         "CMAKE_CXX_FLAGS": "/EHsc /MP /W4 /WX",
         "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       },
 
       "warnings": {
@@ -39,7 +39,8 @@
       "inherits": ["base"],
       "displayName": "Debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "COPY_OUTPUT": "ON"
       }
     },
 
