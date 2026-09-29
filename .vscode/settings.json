@@ -1,8 +1,12 @@
 {
-    "clangd.arguments": [
-        "--query-driver=C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/**/bin/Hostx64/x64/cl.exe",
-        "--background-index",
-        "--clang-tidy=false"
-    ],
-    "clangd.onConfigChanged": "restart"
+    "C_Cpp.clang_format_path": "C:/Users/CharleneHoo/Scoop/apps/llvm/current/bin/clang-format.exe",
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.clang_format_fallbackStyle": "Google",
+    "editor.formatOnSave": true,
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    }
 }
