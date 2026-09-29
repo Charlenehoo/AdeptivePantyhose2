@@ -1,4 +1,8 @@
 {
+  "cmake.useCMakePresets": "always",
+  "cmake.configureOnOpen": false,
+  "cmake.buildDirectory": "${workspaceFolder}/build/debug",
+
   // ============================================================
   // C/C++ IntelliSense (cpptools)
   // ============================================================
