@@ -31,9 +31,6 @@ def main() -> int:
     parser.add_argument("files", nargs="*", help="files; if empty, read from stdin")
     parser.add_argument("-p", "--compile-commands", default="build/clang-tidy")
     parser.add_argument("--fix", action="store_true")
-    parser.add_argument(
-        "--header-filter", default=r".*AdeptivePantyhose2[\\/]src[\\/].*"
-    )
     args = parser.parse_args()
 
     raw = args.files or read_stdin()
@@ -51,7 +48,6 @@ def main() -> int:
         "clang-tidy",
         "-p",
         args.compile_commands,
-        f"--header-filter={args.header_filter}",
         *CLANG_TIDY_ARGS,
     ]
     if args.fix:
