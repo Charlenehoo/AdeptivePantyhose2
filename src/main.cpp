@@ -6,30 +6,35 @@
 namespace {
 
 void OnPostPostLoad() {
-    SKSE_LOG_TRACE("kPostPostLoad: initializing BodyMorphManager");
+    SKSE_LOG_TRACE("OnPostPostLoad - initializing BodyMorphManager");
 
     if (!BodyMorphManager::GetSingleton().Init()) {
         SKSE_LOG_ERROR(
-            "BodyMorphManager init failed — plugin will be inactive "
-            "(is SKEE installed?)");
+            "OnPostPostLoad - BodyMorphManager init failed; "
+            "plugin will be inactive (is SKEE installed?)");
     }
 }
 
 void OnDataLoaded() {
-    RE::ConsoleLog::GetSingleton()->Print("Hello world");
-    SKSE_LOG_TRACE("kDataLoaded: loading config and registering sinks");
-
-    auto& processor = EventProcessor::GetSingleton();
-
-    auto* holder = RE::ScriptEventSourceHolder::GetSingleton();
-    if (!holder) {
-        SKSE_LOG_ERROR("ScriptEventSourceHolder unavailable");
+    if (!BodyMorphManager::GetSingleton().IsReady()) {
+        SKSE_LOG_WARN(
+            "OnDataLoaded - BodyMorphManager not ready; skipping event sinks");
         return;
     }
 
+    SKSE_LOG_TRACE("OnDataLoaded - registering event sinks");
+
+    auto* holder = RE::ScriptEventSourceHolder::GetSingleton();
+    if (!holder) {
+        SKSE_LOG_ERROR("OnDataLoaded - ScriptEventSourceHolder unavailable");
+        return;
+    }
+
+    auto& processor = EventProcessor::GetSingleton();
     holder->AddEventSink<RE::TESEquipEvent>(&processor);
     holder->AddEventSink<RE::TESObjectLoadedEvent>(&processor);
-    SKSE_LOG_INFO("Event sinks registered");
+
+    SKSE_LOG_INFO("OnDataLoaded - event sinks registered");
 }
 
 void OnMessage(SKSE::MessagingInterface::Message* a_msg) {
@@ -65,34 +70,35 @@ extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(
                            .logLevel = kLogLevel,
                        });
 
-    SKSE_LOG_TRACE("Try to get messaging interface");
+    SKSE_LOG_TRACE("SKSEPlugin_Load - getting messaging interface");
     auto* messaging = SKSE::GetMessagingInterface();
     if (!messaging) {
-        SKSE_LOG_ERROR("Failed to get messaging interface");
+        SKSE_LOG_ERROR("SKSEPlugin_Load - messaging interface unavailable");
         return false;
     }
 
-    SKSE_LOG_TRACE("Try to register message listener");
+    SKSE_LOG_TRACE("SKSEPlugin_Load - registering message listener");
     if (!messaging->RegisterListener(OnMessage)) {
-        SKSE_LOG_ERROR("Failed to register message listener");
+        SKSE_LOG_ERROR("SKSEPlugin_Load - failed to register message listener");
         return false;
     }
 
-    SKSE_LOG_INFO("Plugin loaded");
+    SKSE_LOG_INFO("SKSEPlugin_Load - plugin loaded");
     return true;
 }
 
+// NOLINTBEGIN(readability-identifier-naming)
 extern "C" [[maybe_unused]]
-// NOLINTNEXTLINE(readability-identifier-naming)
 __declspec(dllexport) constinit SKSE::PluginVersionData SKSEPlugin_Version =
     []() {
-        SKSE::PluginVersionData v;
-        v.PluginVersion(Plugin::VERSION);
-        v.PluginName(Plugin::NAME);
-        v.AuthorName(Plugin::AUTHOR);
-        v.UsesAddressLibrary();
-        v.UsesUpdatedStructs();
-        v.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST});
-        v.MinimumRequiredXSEVersion(REL::Version{2, 3, 0});
-        return v;
+        SKSE::PluginVersionData versionData;
+        versionData.PluginVersion(Plugin::VERSION);
+        versionData.PluginName(Plugin::NAME);
+        versionData.AuthorName(Plugin::AUTHOR);
+        versionData.UsesAddressLibrary();
+        versionData.UsesUpdatedStructs();
+        versionData.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST});
+        versionData.MinimumRequiredXSEVersion(REL::Version{2, 3, 0});
+        return versionData;
     }();
+// NOLINTEND(readability-identifier-naming)
