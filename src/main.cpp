@@ -31,12 +31,12 @@ void OnDataLoaded() {
     SKSE_LOG_INFO("Event sinks registered");
 }
 
-void OnMessage(SKSE::MessagingInterface::Message* msg) {
-    if (!msg) {
+void OnMessage(SKSE::MessagingInterface::Message* a_msg) {
+    if (!a_msg) {
         return;
     }
 
-    switch (msg->type) {
+    switch (a_msg->type) {
         case SKSE::MessagingInterface::kPostPostLoad:
             OnPostPostLoad();
             break;
@@ -58,11 +58,11 @@ constexpr REX::ELogLevel kLogLevel = REX::ELogLevel::Trace;
 
 // NOLINTNEXTLINE(readability-identifier-naming)
 extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(
-    const SKSE::LoadInterface* skse) {
-    SKSE::Init(skse, SKSE::InitInfo{
-                         .log = true,
-                         .logLevel = kLogLevel,
-                     });
+    const SKSE::LoadInterface* a_skse) {
+    SKSE::Init(a_skse, SKSE::InitInfo{
+                           .log = true,
+                           .logLevel = kLogLevel,
+                       });
 
     auto* messagingInterface = SKSE::GetMessagingInterface();
     if (!messagingInterface) {
