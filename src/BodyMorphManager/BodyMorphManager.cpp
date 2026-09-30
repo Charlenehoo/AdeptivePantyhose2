@@ -24,8 +24,10 @@ auto BodyMorphManager::Init() -> bool {
 
     const auto* messaging = SKSE::GetMessagingInterface();
     if (!messaging) {
-        SKSE_LOG_ERROR(
-            "BodyMorphManager::Init — messaging interface unavailable");
+        // 防御性检查：RegisterListener 成功过，理论上不该到这
+        SKSE_LOG_TRACE(
+            "BodyMorphManager::Init — messaging interface vanished; "
+            "SKSE state likely corrupted");
         return false;
     }
 
