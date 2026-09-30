@@ -10,8 +10,8 @@ void OnPostPostLoad() {
 
     if (!BodyMorphManager::GetSingleton().Init()) {
         SKSE_LOG_ERROR(
-            "OnPostPostLoad - BodyMorphManager init failed; "
-            "plugin will be inactive (is SKEE installed?)");
+            "OnPostPostLoad - BodyMorphManager init failed; plugin will be "
+            "inactive");
     }
 }
 
