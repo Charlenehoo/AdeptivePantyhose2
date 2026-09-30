@@ -32,7 +32,9 @@ void OnDataLoaded() {
 }
 
 void OnMessage(SKSE::MessagingInterface::Message* msg) {
-    if (!msg) return;
+    if (!msg) {
+        return;
+    }
 
     switch (msg->type) {
         case SKSE::MessagingInterface::kPostPostLoad:
