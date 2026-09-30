@@ -56,7 +56,8 @@ constexpr REX::ELogLevel kLogLevel = REX::ELogLevel::Trace;
 
 }  // namespace
 
-SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
+extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(
+    const SKSE::LoadInterface* skse) {
     SKSE::Init(skse, SKSE::InitInfo{
                          .log = true,
                          .logLevel = kLogLevel,
@@ -75,14 +76,16 @@ SKSE_PLUGIN_LOAD(const SKSE::LoadInterface* skse) {
     return true;
 }
 
-SKSE_PLUGIN_VERSION = []() {
-    SKSE::PluginVersionData v;
-    v.PluginVersion(Plugin::VERSION);
-    v.PluginName(Plugin::NAME);
-    v.AuthorName(Plugin::AUTHOR);
-    v.UsesAddressLibrary();
-    v.UsesUpdatedStructs();
-    v.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST});
-    v.MinimumRequiredXSEVersion(REL::Version{2, 3, 0});
-    return v;
-}();
+extern "C" [[maybe_unused]]
+__declspec(dllexport) constinit SKSE::PluginVersionData SKSEPlugin_Version =
+    []() {
+        SKSE::PluginVersionData v;
+        v.PluginVersion(Plugin::VERSION);
+        v.PluginName(Plugin::NAME);
+        v.AuthorName(Plugin::AUTHOR);
+        v.UsesAddressLibrary();
+        v.UsesUpdatedStructs();
+        v.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST});
+        v.MinimumRequiredXSEVersion(REL::Version{2, 3, 0});
+        return v;
+    }();
