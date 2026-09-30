@@ -67,18 +67,20 @@ extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(
                            .logLevel = kLogLevel,
                        });
 
+    SKSE_LOG_TRACE("Try to get messaging interface");
     auto* messagingInterface = SKSE::GetMessagingInterface();
     if (!messagingInterface) {
         SKSE_LOG_ERROR("Failed to get messaging interface");
         return false;
     }
 
+    SKSE_LOG_TRACE("Try to register message listener");
     if (!messagingInterface->RegisterListener(OnMessage)) {
         SKSE_LOG_ERROR("Failed to register message listener");
         return false;
     }
 
-    SKSE_LOG_INFO(Plugin::NAME, "Loaded");
+    SKSE_LOG_INFO("Plugin loaded");
     return true;
 }
 
