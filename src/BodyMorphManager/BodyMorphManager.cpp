@@ -20,17 +20,18 @@ auto BodyMorphManager::IsReady() const noexcept -> bool {
 }
 
 auto BodyMorphManager::Init() -> bool {
-    SKSE_LOG_TRACE("BodyMorphManager::Init — begin");
+    SKSE_LOG_TRACE("BodyMorphManager::Init - begin");
 
+    // 防御性检查：RegisterListener 成功过，理论上不该到这
     const auto* messaging = SKSE::GetMessagingInterface();
     if (!messaging) {
-        // 防御性检查：RegisterListener 成功过，理论上不该到这
         SKSE_LOG_TRACE(
-            "BodyMorphManager::Init — messaging interface vanished; "
+            "BodyMorphManager::Init - messaging interface unexpectedly null; "
             "SKSE state likely corrupted");
         return false;
     }
 
+    SKSE_LOG_TRACE("BodyMorphManager::Init - dispatching interface exchange");
     SKEE::InterfaceExchangeMessage exchange{};
     messaging->Dispatch(
         static_cast<std::uint32_t>(
@@ -40,30 +41,32 @@ auto BodyMorphManager::Init() -> bool {
     auto* interfaceMap = exchange.interfaceMap;
     if (!interfaceMap) {
         SKSE_LOG_ERROR(
-            "BodyMorphManager::Init — SKEE interface map unavailable "
+            "BodyMorphManager::Init - SKEE interface map unavailable "
             "(is SKEE installed?)");
         return false;
     }
 
+    SKSE_LOG_TRACE("BodyMorphManager::Init - querying BodyMorph interface");
     m_bodyMorphInterface = static_cast<SKEE::IBodyMorphInterface*>(
         interfaceMap->QueryInterface("BodyMorph"));
     if (!m_bodyMorphInterface) {
         SKSE_LOG_ERROR(
-            "BodyMorphManager::Init — BodyMorph interface unavailable");
+            "BodyMorphManager::Init - BodyMorph interface unavailable");
         return false;
     }
 
     const auto version = m_bodyMorphInterface->GetVersion();
     if (version < kMinInterfaceVersion) {
         SKSE_LOG_ERROR(
-            "BodyMorphManager::Init — interface too old "
+            "BodyMorphManager::Init - interface too old "
             "(require >= {}, got {})",
             kMinInterfaceVersion, version);
         m_bodyMorphInterface = nullptr;
         return false;
     }
 
-    SKSE_LOG_INFO("BodyMorphManager initialized (interface v{})", version);
+    SKSE_LOG_INFO("BodyMorphManager::Init - initialized (interface v{})",
+                  version);
     return true;
 }
 
@@ -74,21 +77,21 @@ void BodyMorphManager::SetMorph(RE::Actor* a_actor, const char* a_morphName,
     // 触发说明上游有 bug，但不该刷屏。
     if (!m_bodyMorphInterface) {
         SKSE_LOG_TRACE(
-            "BodyMorphManager::SetMorph called while not ready — ignored");
+            "BodyMorphManager::SetMorph - called while not ready; ignored");
         return;
     }
 
     if (!a_actor) {
-        SKSE_LOG_WARN("BodyMorphManager::SetMorph — null actor");
+        SKSE_LOG_WARN("BodyMorphManager::SetMorph - null actor");
         return;
     }
 
-    SKSE_LOG_TRACE("BodyMorphManager::SetMorph — actor={}, morph={}, value={}",
+    SKSE_LOG_TRACE("BodyMorphManager::SetMorph - actor={}, morph={}, value={}",
                    a_actor->GetName() ? a_actor->GetName() : "unnamed",
                    a_morphName, a_value);
 
-    // 先清除旧值，非零时再设新值。
-    // 两步合并处理 "设为 0" 和 "设为非 0" 两种情况。
+    // 先清除本插件的旧贡献，再设新值。
+    // kMorphKey 标识"这是本插件"——SKEE 按 key 维护多插件贡献表。
     m_bodyMorphInterface->ClearMorph(a_actor, a_morphName, kMorphKey);
     if (a_value != 0.0f) {
         m_bodyMorphInterface->SetMorph(a_actor, a_morphName, kMorphKey,
