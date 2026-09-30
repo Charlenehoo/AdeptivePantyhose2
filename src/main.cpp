@@ -56,6 +56,7 @@ constexpr REX::ELogLevel kLogLevel = REX::ELogLevel::Trace;
 
 }  // namespace
 
+// NOLINTNEXTLINE(readability-identifier-naming)
 extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(
     const SKSE::LoadInterface* skse) {
     SKSE::Init(skse, SKSE::InitInfo{
@@ -77,6 +78,7 @@ extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(
 }
 
 extern "C" [[maybe_unused]]
+// NOLINTNEXTLINE(readability-identifier-naming)
 __declspec(dllexport) constinit SKSE::PluginVersionData SKSEPlugin_Version =
     []() {
         SKSE::PluginVersionData v;
