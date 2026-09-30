@@ -1,4 +1,4 @@
-set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/..")
+get_filename_component(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/.." ABSOLUTE)
 
 set(SOURCE_DIR "${ROOT_DIR}/src")
 set(SOURCE_FILES
