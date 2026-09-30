@@ -2,10 +2,23 @@
   "C_Cpp.clang_format_style": "file",
   "C_Cpp.clang_format_fallbackStyle": "Google",
   "editor.formatOnSave": true,
-  "[cpp]": {
-    "editor.defaultFormatter": "ms-vscode.cpptools"
-  },
-  "[c]": {
-    "editor.defaultFormatter": "ms-vscode.cpptools"
-  }
+  "[cpp]": { "editor.defaultFormatter": "ms-vscode.cpptools" },
+  "[c]": { "editor.defaultFormatter": "ms-vscode.cpptools" },
+
+  "C_Cpp.default.compilerPath": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build/debug/compile_commands.json",
+  "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
+  "C_Cpp.default.cppStandard": "c++23",
+  "C_Cpp.default.defines": [
+    "SKYRIM_AE",
+    "SKYRIM_SUPPORT_AE",
+    "_UNICODE",
+    "UNICODE"
+  ],
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/src",
+    "${workspaceFolder}/external/CommonLibSSE/include",
+    "${workspaceFolder}/external",
+    "${workspaceFolder}/build/debug/src"
+  ]
 }

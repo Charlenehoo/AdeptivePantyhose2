@@ -5,13 +5,16 @@
 
 namespace {
 
-bool OnPostPostLoad() {
+void OnPostPostLoad() {
     SKSE_LOG_TRACE("kPostPostLoad: initializing BodyMorphManager");
-    if (!BodyMorphManager::GetSingleton().Init()) {
-        SKSE_LOG_ERROR("BodyMorphManager init failed");
-        return false;
+
+    if (BodyMorphManager::GetSingleton().Init()) {
+        SKSE_LOG_INFO("BodyMorphManager initialized");
+    } else {
+        SKSE_LOG_ERROR(
+            "BodyMorphManager init failed — morph features will be "
+            "unavailable");
     }
-    return true;
 }
 
 void OnDataLoaded() {
@@ -66,14 +69,16 @@ extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Load(
 
     auto* messagingInterface = SKSE::GetMessagingInterface();
     if (!messagingInterface) {
-        SKSE_LOG_CRITICAL("Failed to get messaging interface");
+        SKSE_LOG_ERROR("Failed to get messaging interface");
         return false;
     }
 
     if (!messagingInterface->RegisterListener(OnMessage)) {
-        SKSE_LOG_CRITICAL("Failed to register message listener");
+        SKSE_LOG_ERROR("Failed to register message listener");
         return false;
     }
+
+    SKSE_LOG_INFO(Plugin::NAME, "Loaded");
     return true;
 }
 
