@@ -18,6 +18,7 @@ configure_file(
 add_library(
     "${PROJECT_NAME}" SHARED
     src/main.cpp
+    src/Config/SyntaxParser.cpp
     src/Event/EventProcessor.cpp
     src/Integration/SKEE/SKEEIntegration.cpp
 )

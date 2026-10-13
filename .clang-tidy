@@ -61,7 +61,11 @@ CheckOptions:
   - key: readability-identifier-naming.LocalVariableCase
     value: camelBack
 
-  # --- 成员变量：m_ 前缀 ---
+  # --- 成员变量 ---
+  # private / protected 成员用 m_ 前缀区分局部变量。
+  # public 成员（通常是聚合数据 struct）不加前缀：加 m_ 会让访问点
+  # 如 `parsed.m_leafType` 显得冗余，且与聚合初始化、结构化绑定等
+  # 惯用法冲突。
   - key: readability-identifier-naming.MemberCase
     value: camelBack
   - key: readability-identifier-naming.MemberPrefix
@@ -71,7 +75,7 @@ CheckOptions:
   - key: readability-identifier-naming.ProtectedMemberPrefix
     value: m_
   - key: readability-identifier-naming.PublicMemberPrefix
-    value: m_
+    value: ""
 
   # --- 全局变量：g_ 前缀 ---
   - key: readability-identifier-naming.GlobalVariableCase
