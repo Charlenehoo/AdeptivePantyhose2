@@ -1,7 +1,7 @@
 # 保持 3.19：提到 3.31 会触发新策略，导致 CommonLibSSE 被编译两遍（387 → 772）。
 # 预设要求的 3.31 由 CMakePresets.json 声明。
 cmake_minimum_required(VERSION 3.19)
-project(Hello VERSION 0.1.0 LANGUAGES CXX)
+project(AdeptivePantyhose VERSION 2.0.0 LANGUAGES CXX)
 set(PROJECT_AUTHOR "Charlene Hoo")
 set(PROJECT_AUTHOR_EMAIL "CharleneHoo@hotmail.com")
 
