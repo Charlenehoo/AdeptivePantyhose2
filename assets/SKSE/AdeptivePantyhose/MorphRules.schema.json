@@ -189,7 +189,7 @@
     },
 
     "BipedSlotName": {
-      "description": "BipedObjectSlot 枚举名，须与 CommonLibSSE 中 RE::BGSBipedObjectForm::BipedObjectSlot 一致。",
+      "description": "BipedObjectSlot 枚举名。须与 BGSBipedObjectForm.h 的定义及 PredicateCompiler::ParseBipedSlot 的映射表三处一致。",
       "type": "string",
       "enum": [
         "kHead",
@@ -212,8 +212,8 @@
         "kModBack",
         "kModMisc1",
         "kModPelvisPrimary",
-        "kModDecapitate",
-        "kModHighResPrimary",
+        "kDecapitateHead",
+        "kDecapitate",
         "kModPelvisSecondary",
         "kModLegRight",
         "kModLegLeft",
@@ -222,7 +222,8 @@
         "kModShoulder",
         "kModArmLeft",
         "kModArmRight",
-        "kModMisc2"
+        "kModMisc2",
+        "kFX01"
       ]
     }
   }

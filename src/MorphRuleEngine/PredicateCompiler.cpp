@@ -9,6 +9,56 @@
 
 namespace MorphRules::Engine {
 
+// magic_enum 依赖枚举值落在编译期可枚举的连续范围内。BipedObjectSlot
+// 是位标志枚举（kFX01 = 1<<31），扩展到覆盖整个值域会显著拖慢编译并
+// 撑大二进制。手写映射。
+//
+// 列表须与 BGSBipedObjectForm.h 的 BipedObjectSlot 定义、
+// MorphRules.schema.json 的 BipedSlotName enum 三处保持一致。
+auto ParseBipedSlot(std::string_view a_name) -> std::optional<RE::BGSBipedObjectForm::BipedObjectSlot> {
+    using Slot = RE::BGSBipedObjectForm::BipedObjectSlot;
+
+    static const std::unordered_map<std::string_view, Slot> kMap = {
+        {"kHead", Slot::kHead},
+        {"kHair", Slot::kHair},
+        {"kBody", Slot::kBody},
+        {"kHands", Slot::kHands},
+        {"kForearms", Slot::kForearms},
+        {"kAmulet", Slot::kAmulet},
+        {"kRing", Slot::kRing},
+        {"kFeet", Slot::kFeet},
+        {"kCalves", Slot::kCalves},
+        {"kShield", Slot::kShield},
+        {"kTail", Slot::kTail},
+        {"kLongHair", Slot::kLongHair},
+        {"kCirclet", Slot::kCirclet},
+        {"kEars", Slot::kEars},
+        {"kModMouth", Slot::kModMouth},
+        {"kModNeck", Slot::kModNeck},
+        {"kModChestPrimary", Slot::kModChestPrimary},
+        {"kModBack", Slot::kModBack},
+        {"kModMisc1", Slot::kModMisc1},
+        {"kModPelvisPrimary", Slot::kModPelvisPrimary},
+        {"kDecapitateHead", Slot::kDecapitateHead},
+        {"kDecapitate", Slot::kDecapitate},
+        {"kModPelvisSecondary", Slot::kModPelvisSecondary},
+        {"kModLegRight", Slot::kModLegRight},
+        {"kModLegLeft", Slot::kModLegLeft},
+        {"kModFaceJewelry", Slot::kModFaceJewelry},
+        {"kModChestSecondary", Slot::kModChestSecondary},
+        {"kModShoulder", Slot::kModShoulder},
+        {"kModArmLeft", Slot::kModArmLeft},
+        {"kModArmRight", Slot::kModArmRight},
+        {"kModMisc2", Slot::kModMisc2},
+        {"kFX01", Slot::kFX01},
+    };
+
+    if (auto iter = kMap.find(a_name); iter != kMap.end()) {
+        return iter->second;
+    }
+    return std::nullopt;
+}
+
 void PredicateCompiler::RegisterLeaf(std::string a_type, LeafFactory a_factory) {
     m_factories.insert_or_assign(std::move(a_type), std::move(a_factory));
 }
@@ -33,7 +83,7 @@ auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::ex
     for (const auto& [morphName, parsedMorph] : a_config.morphs) {
         const auto basePath = std::format("Morphs.{}", morphName);
 
-        auto slot = magic_enum::enum_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(parsedMorph.triggeredBy);
+        auto slot = ParseBipedSlot(parsedMorph.triggeredBy);
         if (!slot.has_value()) {
             m_config = nullptr;
             return std::unexpected(CompileError{
