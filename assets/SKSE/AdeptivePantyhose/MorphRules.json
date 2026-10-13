@@ -1,0 +1,55 @@
+{
+  "Predicates": {
+    "KillerHeels": {
+      "ByKeywords": ["SLA_KillerHeels"]
+    },
+    "CosplayPackHeels": {
+      "ByFormIDRange": [
+        {
+          "Plugin": "[Caenarvon] Cosplay Pack.esp",
+          "Min": "0xDDF",
+          "Max": "0xDDF"
+        },
+        {
+          "Plugin": "[Caenarvon] Cosplay Pack.esp",
+          "Min": "0x878",
+          "Max": "0x878"
+        },
+        {
+          "Plugin": "[Caenarvon] Cosplay Pack.esp",
+          "Min": "0xE66",
+          "Max": "0xE66"
+        },
+        {
+          "Plugin": "[Caenarvon] Magecore.esp",
+          "Min": "0xB4C",
+          "Max": "0xB4C"
+        },
+        {
+          "Plugin": "[Caenarvon] Cosplay Pack Gala.esp",
+          "Min": "0xB69",
+          "Max": "0xB72"
+        },
+        {
+          "Plugin": "[Caenarvon] Cosplay Pack Gala.esp",
+          "Min": "0xCB6",
+          "Max": "0xCFC"
+        },
+        {
+          "Plugin": "[Caenarvon] Cosplay Pack Casual.esp",
+          "Min": "0xA92",
+          "Max": "0xA92"
+        }
+      ]
+    },
+    "WearingHighHeels": {
+      "AnyOf": ["KillerHeels", "CosplayPackHeels"]
+    }
+  },
+  "Morphs": {
+    "NoHeel": [
+      { "Value": 0.0, "When": "WearingHighHeels" },
+      { "Value": 1.0, "When": "Default" }
+    ]
+  }
+}
