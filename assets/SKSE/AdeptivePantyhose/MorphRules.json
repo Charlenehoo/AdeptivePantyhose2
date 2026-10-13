@@ -2,7 +2,14 @@
   "$schema": "./MorphRules.schema.json",
   "Predicates": {
     "KillerHeels": {
-      "ByKeywords": ["SLA_KillerHeels"]
+      "ByKeywords": [
+        "SLA_KillerHeels"
+      ]
+    },
+    "HasStockings": {
+      "ByKeywords": [
+        "SLA_HasStockings"
+      ]
     },
     "CosplayPackHeels": {
       "ByFormIDRange": [
@@ -44,15 +51,37 @@
       ]
     },
     "HighHeel": {
-      "AnyOf": ["KillerHeels", "CosplayPackHeels"]
+      "AnyOf": [
+        "KillerHeels",
+        "CosplayPackHeels"
+      ]
     }
   },
   "Morphs": {
     "NoHeel": {
       "TriggeredBy": "kFeet",
       "Rules": [
-        { "Value": 0.0, "When": "HighHeel" },
-        { "Value": 1.0, "When": "Default" }
+        {
+          "Value": 0.0,
+          "When": "HighHeel"
+        },
+        {
+          "Value": 1.0,
+          "When": "Default"
+        }
+      ]
+    },
+    "Pressed": {
+      "TriggeredBy": "kCalves",
+      "Rules": [
+        {
+          "Value": 1.0,
+          "When": "HasStockings"
+        },
+        {
+          "Value": 0.0,
+          "When": "Default"
+        }
       ]
     }
   }
