@@ -574,7 +574,7 @@
         <Slider name="NoHeel" invert="false" small="0" big="0">
             <Data name="acc_stockingNoHeel" target="acc_stocking" local="true">[Caenarvon] Cosplay Sailor Garter (3BA).osd\acc_stockingNoHeel</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="ThighsPressed" target="Thighs" local="true">[Caenarvon] Cosplay Sailor Garter (3BA).osd\ThighsPressed</Data>
         </Slider>
         <Slider name="Labiapuffyness" invert="false" small="0" big="0">
@@ -1075,7 +1075,7 @@
         <Slider name="NoSideTie" invert="false" small="0" big="0" zap="true">
             <Data name="1_pantyStringNoSideTie" target="1_pantyString" local="true">[Caenarvon] Cosplay Sailor Panty (3BA).osd\1_pantyStringNoSideTie</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_pantyStringPressed" target="1_pantyString" local="true">[Caenarvon] Cosplay Sailor Panty (3BA).osd\1_pantyStringPressed</Data>
         </Slider>
     </SliderSet>
@@ -1411,7 +1411,7 @@
             <Data name="1_pantyCBPC" target="1_panty" local="true">[Caenarvon] Cosplay Sailor Panty Lewd (3BA).osd\1_pantyCBPC</Data>
             <Data name="1_panty45CBPC" target="1_panty45" local="true">[Caenarvon] Cosplay Sailor Panty Lewd (3BA).osd\1_panty45CBPC</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_pantyStringPressed" target="1_pantyString" local="true">[Caenarvon] Cosplay Sailor Panty Lewd (3BA).osd\1_pantyStringPressed</Data>
         </Slider>
         <Slider name="NoSideTie" invert="false" small="0" big="0" zap="true">
@@ -1845,7 +1845,7 @@
         <Slider name="CrotchGap" invert="false" small="0" big="0">
             <Data name="VirtualBodyCrotchGap" target="VirtualBody" local="true">[Caenarvon] Cosplay Sailor Panty Lewd [SMP] (3BA).osd\VirtualBodyCrotchGap</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_pantyStringPressed" target="1_pantyString" local="true">[Caenarvon] Cosplay Sailor Panty Lewd [SMP] (3BA).osd\1_pantyStringPressed</Data>
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay Sailor Panty Lewd [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
@@ -2301,7 +2301,7 @@
         <Slider name="CrotchGap" invert="false" small="0" big="0">
             <Data name="VirtualBodyCrotchGap" target="VirtualBody" local="true">[Caenarvon] Cosplay Sailor Panty [SMP] (3BA).osd\VirtualBodyCrotchGap</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_pantyStringPressed" target="1_pantyString" local="true">[Caenarvon] Cosplay Sailor Panty [SMP] (3BA).osd\1_pantyStringPressed</Data>
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay Sailor Panty [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
@@ -2820,7 +2820,7 @@
         <Slider name="OldBaseShape" invert="false" small="0" big="0">
             <Data name="1_skirtOldBaseShape" target="1_skirt" local="true">[Caenarvon] Cosplay Sailor Skirt (3BA).osd\1_skirtOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_skirtPressed" target="1_skirt" local="true">[Caenarvon] Cosplay Sailor Skirt (3BA).osd\1_skirtPressed</Data>
         </Slider>
     </SliderSet>
@@ -3512,7 +3512,7 @@
             <Data name="1_skirtShortOldBaseShape" target="1_skirtShort" local="true">[Caenarvon] Cosplay Sailor Skirt Short [SMP] (3BA).osd\1_skirtShortOldBaseShape</Data>
             <Data name="VirtualBodyOldBaseShape" target="VirtualBody" local="true">[Caenarvon] Cosplay Sailor Skirt Short [SMP] (3BA).osd\VirtualBodyOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_skirtShortPressed" target="1_skirtShort" local="true">[Caenarvon] Cosplay Sailor Skirt Short [SMP] (3BA).osd\1_skirtShortPressed</Data>
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay Sailor Skirt Short [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
@@ -3890,7 +3890,7 @@
             <Data name="1_skirtOldBaseShape" target="1_skirt" local="true">[Caenarvon] Cosplay Sailor Skirt [SMP] (3BA).osd\1_skirtOldBaseShape</Data>
             <Data name="VirtualBodyOldBaseShape" target="VirtualBody" local="true">[Caenarvon] Cosplay Sailor Skirt [SMP] (3BA).osd\VirtualBodyOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_skirtPressed" target="1_skirt" local="true">[Caenarvon] Cosplay Sailor Skirt [SMP] (3BA).osd\1_skirtPressed</Data>
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay Sailor Skirt [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
@@ -4105,7 +4105,7 @@
         <Slider name="CrewAdjust" invert="false" small="0" big="0" hidden="true">
             <Data name="2_sockCrewAdjust" target="2_sock" local="true">[Caenarvon] Cosplay Sailor Sock (3BA).osd\2_sockCrewAdjust</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="100" big="100">
             <Data name="thighsPressed" target="thighs" local="true">[Caenarvon] Cosplay Sailor Sock (3BA).osd\thighsPressed</Data>
             <Data name="2_sockPressed" target="2_sock" local="true">[Caenarvon] Cosplay Sailor Sock (3BA).osd\2_sockPressed</Data>
         </Slider>
@@ -4284,7 +4284,7 @@
         <Slider name="NoHeel" invert="false" small="0" big="0">
             <Data name="2_stockingNoHeel" target="2_stocking" local="true">[Caenarvon] Cosplay Sailor Stocking (3BA).osd\2_stockingNoHeel</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="2_stockingPressed" target="2_stocking" local="true">[Caenarvon] Cosplay Sailor Stocking (3BA).osd\2_stockingPressed</Data>
             <Data name="ThighsPressed" target="Thighs" local="true">[Caenarvon] Cosplay Sailor Stocking (3BA).osd\ThighsPressed</Data>
         </Slider>
@@ -9308,7 +9308,7 @@
             <Data name="3BA_VaginaOldBaseShape" target="3BA_Vagina" local="true">[Caenarvon] Cosplay School Blazer with Cardigan (3BA).osd\3BA_VaginaOldBaseShape</Data>
             <Data name="3BA_AnusOldBaseShape" target="3BA_Anus" local="true">[Caenarvon] Cosplay School Blazer with Cardigan (3BA).osd\3BA_AnusOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="blazer_cardiganPressed" target="blazer_cardigan" local="true">[Caenarvon] Cosplay School Blazer with Cardigan (3BA).osd\blazer_cardiganPressed</Data>
         </Slider>
         <Slider name="AnkleSize" invert="false" small="100" big="0">
@@ -10621,7 +10621,7 @@
             <Data name="3BA_VaginaOldBaseShape" target="3BA_Vagina" local="true">[Caenarvon] Cosplay School Blazer with Cardigan [SMP] (3BA).osd\3BA_VaginaOldBaseShape</Data>
             <Data name="3BA_AnusOldBaseShape" target="3BA_Anus" local="true">[Caenarvon] Cosplay School Blazer with Cardigan [SMP] (3BA).osd\3BA_AnusOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="blazer_cardiganPressed" target="blazer_cardigan" local="true">[Caenarvon] Cosplay School Blazer with Cardigan [SMP] (3BA).osd\blazer_cardiganPressed</Data>
             <Data name="1_skirtPressed" target="1_skirt" local="true">[Caenarvon] Cosplay School Blazer with Cardigan [SMP] (3BA).osd\1_skirtPressed</Data>
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay School Blazer with Cardigan [SMP] (3BA).osd\VirtualBodyPressed</Data>
@@ -15924,7 +15924,7 @@
             <Data name="3BA_VaginaOldBaseShape" target="3BA_Vagina" local="true">[Caenarvon] Cosplay School Cardigan (3BA).osd\3BA_VaginaOldBaseShape</Data>
             <Data name="3BA_AnusOldBaseShape" target="3BA_Anus" local="true">[Caenarvon] Cosplay School Cardigan (3BA).osd\3BA_AnusOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="cardiganPressed" target="cardigan" local="true">[Caenarvon] Cosplay School Cardigan (3BA).osd\cardiganPressed</Data>
         </Slider>
         <Slider name="AnkleSize" invert="false" small="100" big="0">
@@ -17008,7 +17008,7 @@
             <Data name="3BA_VaginaOldBaseShape" target="3BA_Vagina" local="true">[Caenarvon] Cosplay School Cardigan [SMP] (3BA).osd\3BA_VaginaOldBaseShape</Data>
             <Data name="3BA_AnusOldBaseShape" target="3BA_Anus" local="true">[Caenarvon] Cosplay School Cardigan [SMP] (3BA).osd\3BA_AnusOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="cardiganPressed" target="cardigan" local="true">[Caenarvon] Cosplay School Cardigan [SMP] (3BA).osd\cardiganPressed</Data>
             <Data name="1_skirtPressed" target="1_skirt" local="true">[Caenarvon] Cosplay School Cardigan [SMP] (3BA).osd\1_skirtPressed</Data>
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay School Cardigan [SMP] (3BA).osd\VirtualBodyPressed</Data>
@@ -18843,7 +18843,7 @@
             <Data name="blazer_skirtbeltOldBaseShape" target="blazer_skirtbelt" local="true">[Caenarvon] Cosplay School Pencil Skirt (3BA).osd\blazer_skirtbeltOldBaseShape</Data>
             <Data name="blazer_skirtbeltringOldBaseShape" target="blazer_skirtbeltring" local="true">[Caenarvon] Cosplay School Pencil Skirt (3BA).osd\blazer_skirtbeltringOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="blazer_skirtPressed" target="blazer_skirt" local="true">[Caenarvon] Cosplay School Pencil Skirt (3BA).osd\blazer_skirtPressed</Data>
         </Slider>
         <Slider name="BreastHeight" invert="false" small="0" big="0">
@@ -19248,7 +19248,7 @@
             <Data name="blazer_skirtbeltOldBaseShape" target="blazer_skirtbelt" local="true">[Caenarvon] Cosplay School Pencil Skirt Lewd (3BA).osd\blazer_skirtbeltOldBaseShape</Data>
             <Data name="blazer_skirtbeltringOldBaseShape" target="blazer_skirtbeltring" local="true">[Caenarvon] Cosplay School Pencil Skirt Lewd (3BA).osd\blazer_skirtbeltringOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="blazer_skirtPressed" target="blazer_skirt" local="true">[Caenarvon] Cosplay School Pencil Skirt Lewd (3BA).osd\blazer_skirtPressed</Data>
         </Slider>
         <Slider name="BreastHeight" invert="false" small="0" big="0">
@@ -24029,7 +24029,7 @@
         <Slider name="OldBaseShape" invert="false" small="0" big="0">
             <Data name="1_skirtOldBaseShape" target="1_skirt" local="true">[Caenarvon] Cosplay School Skirt (3BA).osd\1_skirtOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_skirtPressed" target="1_skirt" local="true">[Caenarvon] Cosplay School Skirt (3BA).osd\1_skirtPressed</Data>
         </Slider>
         <Slider name="Adjust" invert="false" small="100" big="100" hidden="true">
@@ -24709,7 +24709,7 @@
             <Data name="1_skirtShortOldBaseShape" target="1_skirtShort" local="true">[Caenarvon] Cosplay School Skirt Short [SMP] (3BA).osd\1_skirtShortOldBaseShape</Data>
             <Data name="VirtualBodyOldBaseShape" target="VirtualBody" local="true">[Caenarvon] Cosplay School Skirt Short [SMP] (3BA).osd\VirtualBodyOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_skirtShortPressed" target="1_skirtShort" local="true">[Caenarvon] Cosplay School Skirt Short [SMP] (3BA).osd\1_skirtShortPressed</Data>
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay School Skirt Short [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
@@ -25090,7 +25090,7 @@
             <Data name="1_skirtOldBaseShape" target="1_skirt" local="true">[Caenarvon] Cosplay School Skirt [SMP] (3BA).osd\1_skirtOldBaseShape</Data>
             <Data name="VirtualBodyOldBaseShape" target="VirtualBody" local="true">[Caenarvon] Cosplay School Skirt [SMP] (3BA).osd\VirtualBodyOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_skirtPressed" target="1_skirt" local="true">[Caenarvon] Cosplay School Skirt [SMP] (3BA).osd\1_skirtPressed</Data>
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay School Skirt [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
@@ -25775,7 +25775,7 @@
             <Data name="1_skirtOldBaseShape" target="1_skirt" local="true">[Caenarvon] Cosplay School Tied-up Cardigan [SMP] (3BA).osd\1_skirtOldBaseShape</Data>
             <Data name="VirtualBodyOldBaseShape" target="VirtualBody" local="true">[Caenarvon] Cosplay School Tied-up Cardigan [SMP] (3BA).osd\VirtualBodyOldBaseShape</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="0" big="0">
+        <Slider name="Pressed" invert="false" small="50" big="100">
             <Data name="1_skirtPressed" target="1_skirt" local="true">[Caenarvon] Cosplay School Tied-up Cardigan [SMP] (3BA).osd\1_skirtPressed</Data>
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay School Tied-up Cardigan [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
