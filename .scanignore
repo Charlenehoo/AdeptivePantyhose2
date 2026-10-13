@@ -3,3 +3,4 @@ tools/
 scan.md
 
 .gitignore
+assets/
