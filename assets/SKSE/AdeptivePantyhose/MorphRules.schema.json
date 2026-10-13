@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "MorphRules.schema.json",
+  "title": "AdeptivePantyhose MorphRules",
+  "description": "谓词-动作规则表。Predicates 段定义命名谓词，Morphs 段定义由 biped 部位槽触发的 morph 规则列表。",
+  "type": "object",
+  "required": ["Predicates", "Morphs"],
+  "additionalProperties": false,
+
+  "properties": {
+    "$schema": {
+      "description": "指向本 schema 的路径。仅供编辑器校验使用，运行时忽略。",
+      "type": "string"
+    },
+    "Predicates": {
+      "description": "命名谓词表。键为谓词名，值为谓词表达式。'Default' 是保留名，不可定义。",
+      "type": "object",
+      "propertyNames": {
+        "minLength": 1,
+        "not": { "const": "Default" }
+      },
+      "additionalProperties": { "$ref": "#/$defs/PredicateExpr" }
+    },
+    "Morphs": {
+      "description": "morph 规则表。键为 SKEE BodyMorph 系统中的 morph 名。",
+      "type": "object",
+      "propertyNames": { "minLength": 1 },
+      "additionalProperties": { "$ref": "#/$defs/Morph" }
+    }
+  },
+
+  "$defs": {
+    "Morph": {
+      "type": "object",
+      "required": ["TriggeredBy", "Rules"],
+      "additionalProperties": false,
+      "properties": {
+        "TriggeredBy": {
+          "description": "触发该 morph 评估的 biped 部位槽。只有占据该槽的 armor 事件才会被评估。",
+          "$ref": "#/$defs/BipedSlotName"
+        },
+        "Rules": {
+          "description": "有序规则列表。第一个命中的 When 生效；equipped == false 时所有谓词视为不命中，直接落到 Default 分支。",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/MorphRule" }
+        }
+      }
+    },
+
+    "MorphRule": {
+      "type": "object",
+      "required": ["When"],
+      "additionalProperties": false,
+      "properties": {
+        "Value": {
+          "description": "命中时该 morph 的目标绝对值。0.0 表示清除该 morph。缺省为 1.0。",
+          "type": "number",
+          "default": 1.0
+        },
+        "When": { "$ref": "#/$defs/PredicateRef" }
+      }
+    },
+
+    "PredicateExpr": {
+      "description": "谓词表达式：叶子（恰好一个 matcher 键）或组合子（AnyOf / AllOf / Not）。",
+      "oneOf": [
+        { "$ref": "#/$defs/PredicateLeaf" },
+        { "$ref": "#/$defs/PredicateAnyOf" },
+        { "$ref": "#/$defs/PredicateAllOf" },
+        { "$ref": "#/$defs/PredicateNot" }
+      ]
+    },
+
+    "PredicateLeaf": {
+      "description": "叶子谓词。恰好一个 matcher 键；多个 matcher 同时出现时用 AllOf 显式组合。",
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["ByKeywords"],
+          "additionalProperties": false,
+          "properties": {
+            "ByKeywords": {
+              "description": "armor 拥有其中任意一个关键字则命中（OR 语义）。",
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["ByFormIDRange"],
+          "additionalProperties": false,
+          "properties": {
+            "ByFormIDRange": {
+              "description": "armor 来源插件与 local FormID 落在其中任一范围内则命中（OR 语义）。",
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/FormIDRange" }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["HasBipedSlot"],
+          "additionalProperties": false,
+          "properties": {
+            "HasBipedSlot": {
+              "description": "armor 占据指定 biped 部位槽则命中。",
+              "$ref": "#/$defs/BipedSlotName"
+            }
+          }
+        }
+      ]
+    },
+
+    "PredicateAnyOf": {
+      "type": "object",
+      "required": ["AnyOf"],
+      "additionalProperties": false,
+      "properties": {
+        "AnyOf": {
+          "description": "任一子谓词为真则真（短路）。",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/PredicateRef" }
+        }
+      }
+    },
+
+    "PredicateAllOf": {
+      "type": "object",
+      "required": ["AllOf"],
+      "additionalProperties": false,
+      "properties": {
+        "AllOf": {
+          "description": "所有子谓词为真才真（短路）。",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/PredicateRef" }
+        }
+      }
+    },
+
+    "PredicateNot": {
+      "type": "object",
+      "required": ["Not"],
+      "additionalProperties": false,
+      "properties": {
+        "Not": {
+          "description": "子谓词取反。",
+          "$ref": "#/$defs/PredicateRef"
+        }
+      }
+    },
+
+    "PredicateRef": {
+      "description": "谓词名引用。'Default' 是内置恒真谓词，无需在 Predicates 段声明。",
+      "type": "string",
+      "minLength": 1
+    },
+
+    "FormIDRange": {
+      "type": "object",
+      "required": ["Plugin", "Min", "Max"],
+      "additionalProperties": false,
+      "properties": {
+        "Plugin": {
+          "description": "插件文件名，含扩展名。",
+          "type": "string",
+          "minLength": 1
+        },
+        "Min": {
+          "description": "范围下界，十六进制字符串（如 \"0xDDF\"）。",
+          "$ref": "#/$defs/HexFormID"
+        },
+        "Max": {
+          "description": "范围上界（含），十六进制字符串。须 >= Min。",
+          "$ref": "#/$defs/HexFormID"
+        }
+      }
+    },
+
+    "HexFormID": {
+      "type": "string",
+      "pattern": "^0[xX][0-9a-fA-F]+$"
+    },
+
+    "BipedSlotName": {
+      "description": "BipedObjectSlot 枚举名，须与 CommonLibSSE 中 RE::BGSBipedObjectForm::BipedObjectSlot 一致。",
+      "type": "string",
+      "enum": [
+        "kHead",
+        "kHair",
+        "kBody",
+        "kHands",
+        "kForearms",
+        "kAmulet",
+        "kRing",
+        "kFeet",
+        "kCalves",
+        "kShield",
+        "kTail",
+        "kLongHair",
+        "kCirclet",
+        "kEars",
+        "kModMouth",
+        "kModNeck",
+        "kModChestPrimary",
+        "kModBack",
+        "kModMisc1",
+        "kModPelvisPrimary",
+        "kModDecapitate",
+        "kModHighResPrimary",
+        "kModPelvisSecondary",
+        "kModLegRight",
+        "kModLegLeft",
+        "kModFaceJewelry",
+        "kModChestSecondary",
+        "kModShoulder",
+        "kModArmLeft",
+        "kModArmRight",
+        "kModMisc2"
+      ]
+    }
+  }
+}
