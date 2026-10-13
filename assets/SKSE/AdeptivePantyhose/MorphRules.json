@@ -11,6 +11,11 @@
         "SLA_HasStockings"
       ]
     },
+    "HasLeggings": {
+      "ByKeywords": [
+        "SLA_HasLeggings"
+      ]
+    },
     "CosplayPackHeels": {
       "ByFormIDRange": [
         {
@@ -77,6 +82,19 @@
         {
           "Value": 1.0,
           "When": "HasStockings"
+        },
+        {
+          "Value": 0.0,
+          "When": "Default"
+        }
+      ]
+    },
+    "Pantyhose": {
+      "TriggeredBy": "kCalves",
+      "Rules": [
+        {
+          "Value": 1.0,
+          "When": "HasLeggings"
         },
         {
           "Value": 0.0,
