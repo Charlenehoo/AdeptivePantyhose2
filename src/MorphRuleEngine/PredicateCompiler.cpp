@@ -7,7 +7,7 @@
 #include <format>
 #include <nlohmann/json.hpp>
 
-namespace MorphRules::Engine {
+namespace {
 
 // magic_enum 依赖枚举值落在编译期可枚举的连续范围内。BipedObjectSlot
 // 是位标志枚举（kFX01 = 1<<31），扩展到覆盖整个值域会显著拖慢编译并
@@ -58,6 +58,9 @@ auto ParseBipedSlot(std::string_view a_name) -> std::optional<RE::BGSBipedObject
     }
     return std::nullopt;
 }
+}  // namespace
+
+namespace MorphRules::Engine {
 
 void PredicateCompiler::RegisterLeaf(std::string a_type, LeafFactory a_factory) {
     m_factories.insert_or_assign(std::move(a_type), std::move(a_factory));

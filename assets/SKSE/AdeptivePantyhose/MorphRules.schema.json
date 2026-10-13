@@ -101,17 +101,6 @@
               "items": { "$ref": "#/$defs/FormIDRange" }
             }
           }
-        },
-        {
-          "type": "object",
-          "required": ["HasBipedSlot"],
-          "additionalProperties": false,
-          "properties": {
-            "HasBipedSlot": {
-              "description": "armor 占据指定 biped 部位槽则命中。",
-              "$ref": "#/$defs/BipedSlotName"
-            }
-          }
         }
       ]
     },

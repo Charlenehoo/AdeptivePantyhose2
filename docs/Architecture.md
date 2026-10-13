@@ -355,7 +355,9 @@ struct ParsedConfig {
 - `PredicateCompiler` 通过 `LeafFactory` 注册表分派叶子类型
 - 递归编译每个谓词，用 `m_compiled` 缓存避免重复
 - 用 `m_inProgress` 检测引用环（语法层只验证"名字有定义"，不检查循环）
-- `TriggeredBy` 字符串用 `magic_enum::enum_cast` 转为 `RE::BGSBipedObjectForm::BipedObjectSlot`
+- `TriggeredBy` 字符串经 `ParseBipedSlot` 手写映射表转为
+  `RE::BGSBipedObjectForm::BipedObjectSlot`。位标志枚举不适合
+  magic_enum，且映射表与 schema 的 BipedSlotName enum 一一对应。
 
 **编译产物**：
 
@@ -402,7 +404,9 @@ struct CompiledRules {
 
 - `Initialize()` 在 `kPostPostLoad` 阶段调用，向 SKEE 发起接口交换请求
 - 持有一个类型化的 `SKEE::IBodyMorphInterface*`（不再是 `void*`）
-- 通过 `GetBodyMorph()` 暴露给 `MorphRuleEngine`
+- 对外提供语义化方法 `SetAbsolute` / `UpdateModelWeight`，屏蔽
+  SKEE 的 key 概念、SetMorph 的相对语义、接口为空的检查。命名
+  空间 key 是集成层的私有常量，领域层不感知。
 - SKEE 未安装或接口版本过旧时打 `REX::WARN`，返回 `nullptr`，调用方静默跳过
 
 ---
@@ -551,9 +555,6 @@ src/
 assets/SKSE/AdeptivePantyhose/
 ├── MorphRules.json               用户可编辑的规则表
 └── MorphRules.schema.json        编辑器校验用
-
-schemas/
-└── MorphRules.schema.json        （打包时同步到 assets）
 ```
 
 ---
@@ -586,7 +587,7 @@ Documents/My Games/Skyrim Special Edition/SKSE/AdeptivePantyhose.log
 
 ### 10.3 关键日志点
 
-- **加载期成功**：`MorphRules loaded: N predicate(s), M morph(s)`
+- **加载期成功**：`MorphRules loaded: M morph(s)`
 - **加载期失败**：`REX::FAIL("MorphRules.json syntax error at {}: {}", location, message)`
 - **编译失败**：`REX::FAIL("MorphRules.json compile error at {}: {}", location, message)`
 - **SKEE 未安装**：`REX::WARN("SKEEIntegration: SKEE not available, integration disabled")`
