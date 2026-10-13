@@ -1,8 +1,6 @@
 #include "pch.h"  // IWYU pragma: keep
 
 #include "Event/EventProcessor.h"
-#include "Event/InputProcessor.h"
-#include "Integration/Precision/PrecisionIntegration.h"
 #include "Integration/SKEE/SKEEIntegration.h"
 
 namespace {
@@ -14,12 +12,6 @@ void RegisterEvents() {
         holder->AddEventSink<RE::TESObjectLoadedEvent>(&gameEvents);
     } else {
         REX::WARN("RegisterEvents: ScriptEventSourceHolder null");
-    }
-
-    if (auto* inputMgr = RE::BSInputDeviceManager::GetSingleton()) {
-        inputMgr->AddEventSink<RE::InputEvent*>(&InputProcessor::GetSingleton());
-    } else {
-        REX::WARN("RegisterEvents: BSInputDeviceManager null");
     }
 
     REX::INFO("RegisterEvents: done");
@@ -36,7 +28,6 @@ void OnMessage(SKSE::MessagingInterface::Message* a_msg) {
             REX::DEBUG("OnMessage: PostPostLoad");
 
             // 请求外部插件 API，此时所有 SKSE 插件的 Load 已完成
-            PrecisionIntegration::GetSingleton().Initialize();
             SKEEIntegration::GetSingleton().Initialize();
             break;
         }

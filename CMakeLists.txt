@@ -19,12 +19,7 @@ add_library(
     "${PROJECT_NAME}" SHARED
     src/main.cpp
     src/Event/EventProcessor.cpp
-    src/Event/InputProcessor.cpp
     src/Integration/SKEE/SKEEIntegration.cpp
-    src/Integration/Precision/PrecisionIntegration.cpp
-    src/Integration/NGD/NGDecapitationsIntegration.cpp
-    src/Debug/DecapitateTest.cpp
-    src/Debug/CloneCorpse.cpp
 )
 target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_23)
 if(MSVC)
@@ -51,18 +46,14 @@ if(TARGET CommonLibSSE)
     )
 endif()
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/vendor/PrecisionAPI" PrecisionAPI)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/vendor/SKEE" SKEE)
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/vendor/NGD" NGD)
 
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(magic_enum CONFIG REQUIRED)
 
 target_link_libraries(
     "${PROJECT_NAME}" PRIVATE
-    PrecisionAPI::PrecisionAPI
     SKEE::SKEE
-    NGD::NGD
     CommonLibSSE::CommonLibSSE
     nlohmann_json::nlohmann_json
     magic_enum::magic_enum
