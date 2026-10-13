@@ -71,8 +71,10 @@ target_link_libraries(
 target_precompile_headers("${PROJECT_NAME}" PRIVATE src/pch.h)
 
 if(DEFINED ENV{MO2})
-    set(MO2_PLUGIN_DIR "$ENV{MO2}/mods/${PROJECT_NAME}/SKSE/Plugins")
+    set(MO2_MOD_DIR "$ENV{MO2}/mods/${PROJECT_NAME}")
+    set(MO2_PLUGIN_DIR "${MO2_MOD_DIR}/SKSE/Plugins")
 
+    # ---- DLL ----
     add_custom_command(
         TARGET "${PROJECT_NAME}" POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${MO2_PLUGIN_DIR}"
@@ -82,6 +84,7 @@ if(DEFINED ENV{MO2})
         COMMENT "Copying $<TARGET_FILE_NAME:${PROJECT_NAME}> to MO2: ${MO2_PLUGIN_DIR}"
     )
 
+    # ---- PDB (Debug) ----
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         add_custom_command(
             TARGET "${PROJECT_NAME}" POST_BUILD
@@ -92,7 +95,21 @@ if(DEFINED ENV{MO2})
         )
     endif()
 
-    message(STATUS "MO2 detected. Output will be copied to: ${MO2_PLUGIN_DIR}")
+    # ---- assets ----
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+        add_custom_target("${PROJECT_NAME}_assets"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+            "${MO2_MOD_DIR}"
+            COMMENT "Syncing assets -> ${MO2_MOD_DIR}"
+            VERBATIM
+        )
+        add_dependencies("${PROJECT_NAME}" "${PROJECT_NAME}_assets")
+    else()
+        message(STATUS "assets/ not found, skipping asset sync")
+    endif()
+
+    message(STATUS "MO2 detected. Mod dir: ${MO2_MOD_DIR}")
 else()
     message(STATUS "MO2 environment variable not found. Skipping auto-copy.")
 endif()

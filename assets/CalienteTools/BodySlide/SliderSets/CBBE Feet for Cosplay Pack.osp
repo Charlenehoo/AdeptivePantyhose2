@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<SliderSetInfo version="1">
+    <SliderSet name="CBBE Feet for Cosplay Pack">
+        <DataFolder>CBBE Feet for Cosplay Pack</DataFolder>
+        <SourceFile>CBBE Feet for Cosplay Pack.nif</SourceFile>
+        <OutputPath>meshes\actors\character\character assets</OutputPath>
+        <OutputFile GenWeights="true" PreventMorphFile="false" KeepZappedShapes="false">femalefeet</OutputFile>
+        <Shape target="Feet" DataFolder="CBBE">Feet</Shape>
+        <Slider name="AnkleSize" invert="false" small="100" big="0">
+            <Data name="FeetAnkleSize" target="Feet" local="true">CBBE Feet for Cosplay Pack.osd\FeetAnkleSize</Data>
+        </Slider>
+        <Slider name="FeetFeminine" invert="false" small="0" big="0">
+            <Data name="FeetFeetFeminine" target="Feet" local="true">CBBE Feet for Cosplay Pack.osd\FeetFeetFeminine</Data>
+        </Slider>
+        <Slider name="Heel" invert="false" small="0" big="0">
+            <Data name="FeetHeel" target="Feet" local="true">CBBE Feet for Cosplay Pack.osd\FeetHeel</Data>
+        </Slider>
+    </SliderSet>
+</SliderSetInfo>
