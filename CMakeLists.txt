@@ -19,11 +19,12 @@ add_library(
     "${PROJECT_NAME}" SHARED
     src/main.cpp
     src/Config/SyntaxParser.cpp
-    src/MorphRuleEngine/PredicateCompiler.cpp
-    src/MorphRuleEngine/Leaves/KeywordPredicate.cpp
-    src/MorphRuleEngine/Leaves/FormIDRangePredicate.cpp
     src/Event/EventProcessor.cpp
     src/Integration/SKEE/SKEEIntegration.cpp
+    src/MorphRuleEngine/PredicateCompiler.cpp
+    src/MorphRuleEngine/MorphRuleEngine.cpp
+    src/MorphRuleEngine/Leaves/KeywordPredicate.cpp
+    src/MorphRuleEngine/Leaves/FormIDRangePredicate.cpp
 )
 target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_23)
 if(MSVC)

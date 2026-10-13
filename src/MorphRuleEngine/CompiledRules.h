@@ -3,9 +3,11 @@
 
 #include "MorphRuleEngine/Predicate.h"
 
+#include <RE/B/BGSBipedObjectForm.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 
 namespace MorphRules::Engine {
 
@@ -17,9 +19,14 @@ struct CompiledMorphEntry {
 
 using CompiledMorphRuleList = std::vector<CompiledMorphEntry>;
 
+struct CompiledMorph {
+    RE::BGSBipedObjectForm::BipedObjectSlot triggeredBy{};
+    CompiledMorphRuleList rules;
+};
+
 // 编译产物：只有 morphs，因为谓词已内联为指针，不需要单独保留名字表。
 struct CompiledRules {
-    std::unordered_map<std::string, CompiledMorphRuleList> morphs;
+    std::unordered_map<std::string, CompiledMorph> morphs;
 };
 
 }  // namespace MorphRules::Engine

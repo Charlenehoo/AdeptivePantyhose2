@@ -1,10 +1,10 @@
+// src/Event/EventProcessor.h
 #pragma once
 
 #include <RE/B/BSTEvent.h>
 #include <RE/T/TESEquipEvent.h>
-#include <RE/T/TESObjectLoadedEvent.h>
 
-class EventProcessor : public RE::BSTEventSink<RE::TESEquipEvent>, public RE::BSTEventSink<RE::TESObjectLoadedEvent> {
+class EventProcessor : public RE::BSTEventSink<RE::TESEquipEvent> {
 public:
     ~EventProcessor() = default;
     EventProcessor(const EventProcessor&) = delete;
@@ -15,8 +15,6 @@ public:
     static auto GetSingleton() -> EventProcessor&;
 
     auto ProcessEvent(const RE::TESEquipEvent* a_event, RE::BSTEventSource<RE::TESEquipEvent>* a_source)
-        -> RE::BSEventNotifyControl override;
-    auto ProcessEvent(const RE::TESObjectLoadedEvent* a_event, RE::BSTEventSource<RE::TESObjectLoadedEvent>* a_source)
         -> RE::BSEventNotifyControl override;
 
 private:

@@ -2,20 +2,22 @@
 
 namespace SKEE {
 
-class TESObjectREFR;
-class NiAVObject;
-class TESObjectARMO;
-class TESObjectARMA;
-class NiNode;
-class NiAVObject;
-class NiTransform;
-class TESForm;
-class BaseExtraList;
-class BGSTextureSet;
-class Actor;
-class BSGeometry;
-class NiSkinPartition;
+// SKEE 接口在 ABI 层面与 CommonLibSSE 的类型一一对应，用别名而非
+// 前向声明——否则 RE::Actor* 无法隐式转换为 SKEE::TESObjectREFR*。
+using TESObjectREFR = ::RE::TESObjectREFR;
+using NiAVObject = ::RE::NiAVObject;
+using TESObjectARMO = ::RE::TESObjectARMO;
+using TESObjectARMA = ::RE::TESObjectARMA;
+using NiNode = ::RE::NiNode;
 class NiBinaryExtraData;
+using TESForm = ::RE::TESForm;
+using BaseExtraList = ::RE::BaseExtraList;
+using BGSTextureSet = ::RE::BGSTextureSet;
+using Actor = ::RE::Actor;
+using BSGeometry = ::RE::BSGeometry;
+using NiSkinPartition = ::RE::NiSkinPartition;
+class NiBinaryExtraData;
+using NiTransform = ::RE::NiTransform;
 
 using skee_u64 = uint64_t;
 using skee_u32 = uint32_t;

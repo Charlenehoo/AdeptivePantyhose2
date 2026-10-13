@@ -13,7 +13,8 @@ struct LeafError {
 };
 
 // 编译整份配置时报错用。location 是完整路径，如
-// "Predicates.CosplayPackHeels.ByFormIDRange[2]"。
+// "Predicates.CosplayPackHeels.ByFormIDRange[2]" 或
+// "Morphs.NoHeel.TriggeredBy"。
 struct CompileError {
     std::string location;
     std::string message;

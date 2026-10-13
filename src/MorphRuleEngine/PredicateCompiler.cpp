@@ -30,11 +30,22 @@ auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::ex
     CompiledRules rules;
     rules.morphs.reserve(a_config.morphs.size());
 
-    for (const auto& [morphName, entries] : a_config.morphs) {
-        CompiledMorphRuleList list;
-        list.reserve(entries.size());
+    for (const auto& [morphName, parsedMorph] : a_config.morphs) {
+        const auto basePath = std::format("Morphs.{}", morphName);
 
-        for (const auto& entry : entries) {
+        auto slot = magic_enum::enum_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(parsedMorph.triggeredBy);
+        if (!slot.has_value()) {
+            m_config = nullptr;
+            return std::unexpected(CompileError{
+                std::format("{}.TriggeredBy", basePath),
+                std::format("unknown biped slot '{}'", parsedMorph.triggeredBy),
+            });
+        }
+
+        CompiledMorphRuleList list;
+        list.reserve(parsedMorph.rules.size());
+
+        for (const auto& entry : parsedMorph.rules) {
             auto pred = BuildPredicate(entry.whenRef);
             if (!pred) {
                 m_config = nullptr;
@@ -43,7 +54,10 @@ auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::ex
             list.push_back(CompiledMorphEntry{entry.value, std::move(*pred)});
         }
 
-        rules.morphs.emplace(morphName, std::move(list));
+        CompiledMorph compiled;
+        compiled.triggeredBy = *slot;
+        compiled.rules = std::move(list);
+        rules.morphs.emplace(morphName, std::move(compiled));
     }
 
     m_config = nullptr;

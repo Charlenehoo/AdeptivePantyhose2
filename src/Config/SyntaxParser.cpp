@@ -18,6 +18,9 @@ constexpr const char* kKeyAnyOf = "AnyOf";
 constexpr const char* kKeyAllOf = "AllOf";
 constexpr const char* kKeyNot = "Not";
 
+constexpr const char* kKeyTriggeredBy = "TriggeredBy";
+constexpr const char* kKeyRules = "Rules";
+
 constexpr const char* kKeyValue = "Value";
 constexpr const char* kKeyWhen = "When";
 
@@ -38,7 +41,7 @@ auto JoinIndex(std::string_view a_base, std::size_t a_index) -> std::string {
     return std::format("{}[{}]", a_base, a_index);
 }
 
-// ---------- 谓词引用：单个名字 / 名字数组 ----------
+// ---------- 谓词引用 ----------
 
 auto ParseSingleRef(const nlohmann::json& a_json, std::string_view a_path) -> std::expected<std::string, ParseError> {
     if (!a_json.is_string()) {
@@ -77,8 +80,6 @@ auto ParsePredicateRefArray(const nlohmann::json& a_json, std::string_view a_pat
 
 auto ParseLeafPredicate(const nlohmann::json& a_json, std::string_view a_path)
     -> std::expected<ParsedPredicate, ParseError> {
-    // 叶子表达式必须恰好一个键，作为 leafType。多个 matcher 同时出现
-    // 时要求用户显式用 AllOf，避免歧义。
     if (a_json.size() != 1) {
         return Err(std::string(a_path),
                    std::format("leaf predicate expression must contain exactly one key "
@@ -211,10 +212,10 @@ auto ParseMorphEntry(const nlohmann::json& a_json, std::string_view a_path)
 auto ParseMorphRuleList(const nlohmann::json& a_json, std::string_view a_path)
     -> std::expected<std::vector<ParsedMorphEntry>, ParseError> {
     if (!a_json.is_array()) {
-        return Err(std::string(a_path), "morph must map to an array of rule entries");
+        return Err(std::string(a_path), "must be an array of rule entries");
     }
     if (a_json.empty()) {
-        return Err(std::string(a_path), "morph rule list must not be empty");
+        return Err(std::string(a_path), "rule list must not be empty");
     }
 
     std::vector<ParsedMorphEntry> result;
@@ -227,17 +228,49 @@ auto ParseMorphRuleList(const nlohmann::json& a_json, std::string_view a_path)
         }
         result.push_back(std::move(*entry));
     }
+    return result;
+}
 
+auto ParseMorph(const nlohmann::json& a_json, std::string_view a_path) -> std::expected<ParsedMorph, ParseError> {
+    if (!a_json.is_object()) {
+        return Err(std::string(a_path), "morph must be an object");
+    }
+    if (!a_json.contains(kKeyTriggeredBy)) {
+        return Err(std::string(a_path), "missing required field 'TriggeredBy'");
+    }
+    if (!a_json.contains(kKeyRules)) {
+        return Err(std::string(a_path), "missing required field 'Rules'");
+    }
+
+    const auto& triggeredByJson = a_json.at(kKeyTriggeredBy);
+    const auto triggeredByPath = JoinPath(a_path, kKeyTriggeredBy);
+
+    if (!triggeredByJson.is_string()) {
+        return Err(triggeredByPath, "'TriggeredBy' must be a string (e.g. \"kFeet\")");
+    }
+    auto triggeredBy = triggeredByJson.get<std::string>();
+    if (triggeredBy.empty()) {
+        return Err(triggeredByPath, "'TriggeredBy' must not be empty");
+    }
+
+    auto rules = ParseMorphRuleList(a_json.at(kKeyRules), JoinPath(a_path, kKeyRules));
+    if (!rules) {
+        return std::unexpected(std::move(rules.error()));
+    }
+
+    ParsedMorph result;
+    result.triggeredBy = std::move(triggeredBy);
+    result.rules = std::move(*rules);
     return result;
 }
 
 auto ParseMorphs(const nlohmann::json& a_json, std::string_view a_path)
-    -> std::expected<std::unordered_map<std::string, std::vector<ParsedMorphEntry>>, ParseError> {
+    -> std::expected<std::unordered_map<std::string, ParsedMorph>, ParseError> {
     if (!a_json.is_object()) {
         return Err(std::string(a_path), "must be an object");
     }
 
-    std::unordered_map<std::string, std::vector<ParsedMorphEntry>> result;
+    std::unordered_map<std::string, ParsedMorph> result;
     result.reserve(a_json.size());
 
     for (auto iter = a_json.begin(); iter != a_json.end(); ++iter) {
@@ -248,11 +281,11 @@ auto ParseMorphs(const nlohmann::json& a_json, std::string_view a_path)
             return Err(std::string(a_path), "morph name must not be empty");
         }
 
-        auto rules = ParseMorphRuleList(iter.value(), entryPath);
-        if (!rules) {
-            return std::unexpected(std::move(rules.error()));
+        auto morph = ParseMorph(iter.value(), entryPath);
+        if (!morph) {
+            return std::unexpected(std::move(morph.error()));
         }
-        result.emplace(name, std::move(*rules));
+        result.emplace(name, std::move(*morph));
     }
 
     return result;
@@ -299,12 +332,14 @@ auto ValidatePredicateRefs(const ParsedConfig& a_config) -> std::expected<void, 
 }
 
 auto ValidateMorphRefs(const ParsedConfig& a_config) -> std::expected<void, ParseError> {
-    for (const auto& [name, rules] : a_config.morphs) {
-        const auto basePath = JoinPath(kMorphsRoot, name);
-        for (std::size_t i = 0; i < rules.size(); ++i) {
-            if (!IsKnownPredicate(rules.at(i).whenRef, a_config.predicates)) {
+    for (const auto& [name, morph] : a_config.morphs) {
+        const auto rulesRoot = JoinPath(kMorphsRoot, name);
+        const auto basePath = JoinPath(rulesRoot, kKeyRules);
+
+        for (std::size_t i = 0; i < morph.rules.size(); ++i) {
+            if (!IsKnownPredicate(morph.rules.at(i).whenRef, a_config.predicates)) {
                 return Err(JoinIndex(basePath, i),
-                           std::format("'When' references undefined predicate '{}'", rules.at(i).whenRef));
+                           std::format("'When' references undefined predicate '{}'", morph.rules.at(i).whenRef));
             }
         }
     }

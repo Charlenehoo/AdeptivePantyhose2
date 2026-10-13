@@ -1,20 +1,62 @@
+// src/main.cpp
+
 #include "pch.h"  // IWYU pragma: keep
 
+#include "Config/SyntaxParser.h"
 #include "Event/EventProcessor.h"
 #include "Integration/SKEE/SKEEIntegration.h"
+#include "MorphRuleEngine/Leaves/FormIDRangePredicate.h"
+#include "MorphRuleEngine/Leaves/KeywordPredicate.h"
+#include "MorphRuleEngine/MorphRuleEngine.h"
+#include "MorphRuleEngine/PredicateCompiler.h"
 
 namespace {
+
+constexpr const char* kMorphRulesPath = "Data/SKSE/AdeptivePantyhose/MorphRules.json";
+
+void LoadMorphRules() {
+    using namespace MorphRules;
+
+    auto parsed = Syntax::ParseFile(kMorphRulesPath);
+    if (!parsed) {
+        REX::FAIL("MorphRules.json syntax error at {}: {}", parsed.error().location, parsed.error().message);
+        return;
+    }
+
+    Engine::PredicateCompiler compiler;
+    compiler.RegisterLeaf("ByKeywords", &Engine::MakeKeywordPredicate);
+    compiler.RegisterLeaf("ByFormIDRange", &Engine::MakeFormIDRangePredicate);
+
+    auto compiled = compiler.Compile(*parsed);
+    if (!compiled) {
+        REX::FAIL("MorphRules.json compile error at {}: {}", compiled.error().location, compiled.error().message);
+        return;
+    }
+
+    const auto morphCount = compiled->morphs.size();
+    Engine::MorphRuleEngine::GetSingleton().SetRules(std::move(*compiled));
+    REX::INFO("MorphRules loaded: {} morph(s)", morphCount);
+}
+
 void RegisterEvents() {
-    auto& gameEvents = EventProcessor::GetSingleton();
+    auto& processor = EventProcessor::GetSingleton();
 
     if (auto* holder = RE::ScriptEventSourceHolder::GetSingleton()) {
-        holder->AddEventSink<RE::TESEquipEvent>(&gameEvents);
-        holder->AddEventSink<RE::TESObjectLoadedEvent>(&gameEvents);
+        holder->AddEventSink<RE::TESEquipEvent>(&processor);
+        REX::INFO("RegisterEvents: TESEquipEvent sink registered");
     } else {
         REX::WARN("RegisterEvents: ScriptEventSourceHolder null");
     }
+}
 
-    REX::INFO("RegisterEvents: done");
+void HandlePostLoadGame() {
+    auto* player = RE::PlayerCharacter::GetSingleton();
+    if (player == nullptr) {
+        REX::WARN("HandlePostLoadGame: PlayerCharacter null");
+        return;
+    }
+
+    MorphRules::Engine::MorphRuleEngine::GetSingleton().OnActorLoaded(player);
 }
 
 void OnMessage(SKSE::MessagingInterface::Message* a_msg) {
@@ -34,14 +76,23 @@ void OnMessage(SKSE::MessagingInterface::Message* a_msg) {
         case SKSE::MessagingInterface::kDataLoaded: {
             REX::DEBUG("OnMessage: DataLoaded");
 
-            // 挂游戏事件，此时游戏数据与事件源已就绪
+            // 加载配置 + 挂游戏事件，此时游戏数据与事件源已就绪
+            LoadMorphRules();
             RegisterEvents();
+            break;
+        }
+        case SKSE::MessagingInterface::kPostLoadGame: {
+            REX::DEBUG("OnMessage: PostLoadGame");
+
+            // 玩家读档后主动跑一遍规则，覆盖存档里已穿高跟的场景
+            HandlePostLoadGame();
             break;
         }
         default:
             break;
     }
 }
+
 }  // namespace
 
 // NOLINTBEGIN(readability-identifier-naming)
@@ -55,12 +106,12 @@ extern "C" [[maybe_unused]] __declspec(dllexport) auto SKSEPlugin_Load(const SKS
 
     const auto* messaging = SKSE::GetMessagingInterface();
     if (messaging == nullptr) {
-        REX::CRITICAL("SKSEPlugin_Load: GetMessagingInterface returned nullptr");
+        REX::FAIL("SKSEPlugin_Load: GetMessagingInterface returned nullptr");
         return false;
     }
 
     if (!messaging->RegisterListener(OnMessage)) {
-        REX::CRITICAL("SKSEPlugin_Load: RegisterListener failed");
+        REX::FAIL("SKSEPlugin_Load: RegisterListener failed");
         return false;
     }
 

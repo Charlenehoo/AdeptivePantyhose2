@@ -11,8 +11,7 @@ class TESObjectARMO;
 
 namespace MorphRules::Engine {
 
-// 谓词求值时的上下文。字段会在后续扩展中增加（如 level、isPlayer 等），
-// 但保持为纯值语义的聚合。
+// 谓词求值时的上下文。
 struct PredicateContext {
     RE::Actor* actor = nullptr;
     RE::TESObjectARMO* armor = nullptr;
@@ -21,17 +20,24 @@ struct PredicateContext {
 class Predicate {
 public:
     virtual ~Predicate() = default;
+
     virtual bool Evaluate(const PredicateContext& a_ctx) const = 0;
+
+    // "恒真" 标记，仅由 AlwaysTruePredicate 返回 true。
+    // MorphRuleEngine 在 equipped == false 时用它识别 Default 分支。
+    [[nodiscard]] virtual bool IsAlwaysTrue() const { return false; }
 };
 
 using PredicatePtr = std::shared_ptr<Predicate>;
 
 // ---------- 内置谓词 ----------
 
-// 恒真，用于 "Default" 保留谓词。
+// 恒真，编译层为 "Default" 保留谓词创建的实例。
 class AlwaysTruePredicate final : public Predicate {
 public:
     bool Evaluate(const PredicateContext& /*a_ctx*/) const override { return true; }
+
+    [[nodiscard]] bool IsAlwaysTrue() const override { return true; }
 };
 
 // 短路：任一子谓词为真则真。
