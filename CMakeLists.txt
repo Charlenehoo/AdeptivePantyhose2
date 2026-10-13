@@ -19,6 +19,9 @@ add_library(
     "${PROJECT_NAME}" SHARED
     src/main.cpp
     src/Config/SyntaxParser.cpp
+    src/MorphRuleEngine/PredicateCompiler.cpp
+    src/MorphRuleEngine/Leaves/KeywordPredicate.cpp
+    src/MorphRuleEngine/Leaves/FormIDRangePredicate.cpp
     src/Event/EventProcessor.cpp
     src/Integration/SKEE/SKEEIntegration.cpp
 )
