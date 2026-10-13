@@ -7,9 +7,8 @@ namespace RE {
 class Actor;
 }
 
-namespace SKEE {
+// SKEE IPluginInterface.h 里的类型位于全局命名空间。
 class IBodyMorphInterface;
-}
 
 // SKEE BodyMorph 接口的封装。
 //
@@ -55,5 +54,5 @@ public:
 private:
     SKEEIntegration() = default;
 
-    SKEE::IBodyMorphInterface* m_bodyMorph = nullptr;
+    IBodyMorphInterface* m_bodyMorph = nullptr;
 };

@@ -17,7 +17,7 @@ constexpr const char* kBodyMorphInterfaceName = "BodyMorph";
 
 // 我们目前用到的方法的最低版本要求。上游 BodyMorph 接口当前最新为
 // kPluginVersion5，取 4 留余量，后续按需调整。
-constexpr SKEE::skee_u32 kBodyMorphMinVersion = 4;
+constexpr skee_u32 kBodyMorphMinVersion = 4;
 
 // 本插件在 SKEE BodyMorph 系统中的命名空间 key。
 // 用于隔离本插件设置的 morph，避免与其他插件冲突。
@@ -43,8 +43,8 @@ void SKEEIntegration::Initialize() {
         return;
     }
 
-    SKEE::InterfaceExchangeMessage exchange{};
-    messaging->Dispatch(static_cast<std::uint32_t>(SKEE::InterfaceExchangeMessage::kMessage_ExchangeInterface),
+    InterfaceExchangeMessage exchange{};
+    messaging->Dispatch(static_cast<std::uint32_t>(InterfaceExchangeMessage::kMessage_ExchangeInterface),
                         &exchange,
                         sizeof(exchange),
                         kSKEEPluginName);
@@ -55,8 +55,7 @@ void SKEEIntegration::Initialize() {
     }
 
     // NOLINTBEGIN(cppcoreguidelines-pro-type-static-cast-downcast)
-    auto* bodyMorph =
-        static_cast<SKEE::IBodyMorphInterface*>(exchange.interfaceMap->QueryInterface(kBodyMorphInterfaceName));
+    auto* bodyMorph = static_cast<IBodyMorphInterface*>(exchange.interfaceMap->QueryInterface(kBodyMorphInterfaceName));
     // NOLINTEND(cppcoreguidelines-pro-type-static-cast-downcast)
     // SKEE 接口查询协议，name→type 契约确定，跨 DLL 无 RTTI
     if (bodyMorph == nullptr) {
