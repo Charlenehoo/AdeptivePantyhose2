@@ -5242,7 +5242,7 @@
             <Data name="1_cafe_skirtbuffer" target="1_cafe_skirt" local="true">[Caenarvon] Cosplay Maid Cafe Apron Skirt [SMP] (3BA).osd\1_cafe_skirtbuffer</Data>
             <Data name="3_cafe_apronbuffer" target="3_cafe_apron" local="true">[Caenarvon] Cosplay Maid Cafe Apron Skirt [SMP] (3BA).osd\3_cafe_apronbuffer</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="50" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay Maid Cafe Apron Skirt [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
         <Slider name="hide" invert="false" small="100" big="100" hidden="true" zap="true">
@@ -6048,7 +6048,7 @@
             <Data name="1_cafe_skirtbuffer" target="1_cafe_skirt" local="true">[Caenarvon] Cosplay Maid Cafe Apron [SMP] (3BA).osd\1_cafe_skirtbuffer</Data>
             <Data name="3_cafe_apronbuffer" target="3_cafe_apron" local="true">[Caenarvon] Cosplay Maid Cafe Apron [SMP] (3BA).osd\3_cafe_apronbuffer</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="50" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay Maid Cafe Apron [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
         <Slider name="hide" invert="false" small="100" big="100" hidden="true" zap="true">
@@ -9443,7 +9443,7 @@
             <Data name="3_cafe_apronbuffer" target="3_cafe_apron" local="true">[Caenarvon] Cosplay Maid Cafe Skirt [SMP] (3BA).osd\3_cafe_apronbuffer</Data>
             <Data name="VirtualBodybuffer" target="VirtualBody" local="true">[Caenarvon] Cosplay Maid Cafe Skirt [SMP] (3BA).osd\VirtualBodybuffer</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="50" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="VirtualBodyPressed" target="VirtualBody" local="true">[Caenarvon] Cosplay Maid Cafe Skirt [SMP] (3BA).osd\VirtualBodyPressed</Data>
         </Slider>
         <Slider name="hide" invert="false" small="100" big="100" hidden="true" zap="true">
@@ -17843,7 +17843,7 @@
         <Slider name="buffer" invert="false" small="100" big="100" hidden="true">
             <Data name="4_stockingbuffer" target="4_stocking" local="true">[Caenarvon] Cosplay Maid Stocking (3BA).osd\4_stockingbuffer</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="100" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="ThighsPressed" target="Thighs" local="true">[Caenarvon] Cosplay Maid Stocking (3BA).osd\ThighsPressed</Data>
         </Slider>
         <Slider name="AppleCheeks" invert="false" small="0" big="0">

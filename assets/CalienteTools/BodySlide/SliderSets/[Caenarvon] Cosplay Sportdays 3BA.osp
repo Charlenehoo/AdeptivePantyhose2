@@ -4474,7 +4474,7 @@
         <Slider name="hide" invert="false" small="100" big="100" hidden="true" zap="true">
             <Data name="3BAhide" target="3BA" local="true">[Caenarvon] Cosplay Sportdays Competitive Swimsuit (3BA).osd\3BAhide</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="100" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="3BAPressed" target="3BA" local="true">[Caenarvon] Cosplay Sportdays Competitive Swimsuit (3BA).osd\3BAPressed</Data>
             <Data name="5_swimPressed" target="5_swim" local="true">[Caenarvon] Cosplay Sportdays Competitive Swimsuit (3BA).osd\5_swimPressed</Data>
         </Slider>
@@ -6903,7 +6903,7 @@
         <Slider name="hide" invert="false" small="100" big="100" hidden="true" zap="true">
             <Data name="3BAhide" target="3BA" local="true">[Caenarvon] Cosplay Sportdays Newschool Swimsuit (3BA).osd\3BAhide</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="100" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="3BAPressed" target="3BA" local="true">[Caenarvon] Cosplay Sportdays Newschool Swimsuit (3BA).osd\3BAPressed</Data>
             <Data name="6_swimPressed" target="6_swim" local="true">[Caenarvon] Cosplay Sportdays Newschool Swimsuit (3BA).osd\6_swimPressed</Data>
         </Slider>
@@ -7625,7 +7625,7 @@
         <Slider name="hide" invert="false" small="100" big="100" hidden="true" zap="true">
             <Data name="3BAhide" target="3BA" local="true">[Caenarvon] Cosplay Sportdays Oldschool Swimsuit (3BA).osd\3BAhide</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="100" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="3BAPressed" target="3BA" local="true">[Caenarvon] Cosplay Sportdays Oldschool Swimsuit (3BA).osd\3BAPressed</Data>
             <Data name="7_swimPressed" target="7_swim" local="true">[Caenarvon] Cosplay Sportdays Oldschool Swimsuit (3BA).osd\7_swimPressed</Data>
         </Slider>
@@ -8382,7 +8382,7 @@
         <Slider name="buffer" invert="false" small="100" big="100" hidden="true">
             <Data name="3_pants1buffer" target="3_pants1" local="true">[Caenarvon] Cosplay Sportdays Pants B (3BA).osd\3_pants1buffer</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="50" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="3_pants1Pressed" target="3_pants1" local="true">[Caenarvon] Cosplay Sportdays Pants B (3BA).osd\3_pants1Pressed</Data>
         </Slider>
     </SliderSet>
@@ -8536,7 +8536,7 @@
         <Slider name="AnalLoose_v2" invert="false" small="0" big="0">
             <Data name="3_pants1LewdAnalLoose_v2" target="3_pants1Lewd" local="true">[Caenarvon] Cosplay Sportdays Pants B Lewd (3BA).osd\3_pants1LewdAnalLoose_v2</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="50" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="3_pants1LewdPressed" target="3_pants1Lewd" local="true">[Caenarvon] Cosplay Sportdays Pants B Lewd (3BA).osd\3_pants1LewdPressed</Data>
         </Slider>
     </SliderSet>
@@ -16863,7 +16863,7 @@
         <Slider name="UNPHip_v2" invert="false" small="0" big="0">
             <Data name="ThighsUNPHip_v2" target="Thighs" local="true">[Caenarvon] Cosplay Sportdays Volleyball Knee Pad (3BA).osd\ThighsUNPHip_v2</Data>
         </Slider>
-        <Slider name="Pressed" invert="false" small="50" big="100">
+        <Slider name="Pressed" invert="false" small="0" big="0">
             <Data name="ThighsPressed" target="Thighs" local="true">[Caenarvon] Cosplay Sportdays Volleyball Knee Pad (3BA).osd\ThighsPressed</Data>
             <Data name="8_kneepadPressed" target="8_kneepad" local="true">[Caenarvon] Cosplay Sportdays Volleyball Knee Pad (3BA).osd\8_kneepadPressed</Data>
         </Slider>
