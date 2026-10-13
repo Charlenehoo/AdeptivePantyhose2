@@ -13,7 +13,8 @@
     ".clangd": "yaml",
     "CMakeLists.txt": "cmake",
     "*.cmake": "cmake",
-    "*.h.in": "plaintext"
+    "*.h.in": "plaintext",
+    "*.osp": "xml"
   },
   "json.schemaDownload.trustedDomains": {
     "https://raw.githubusercontent.com": true
