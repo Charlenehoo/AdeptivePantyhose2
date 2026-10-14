@@ -101,8 +101,8 @@ auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::ex
         if (!slot.has_value()) {
             m_config = nullptr;
             return std::unexpected(CompileError{
-                std::format("{}.TriggeredBy", basePath),
-                std::format("unknown biped slot '{}'", parsedMorph.triggeredBy),
+                .location = std::format("{}.TriggeredBy", basePath),
+                .message = std::format("unknown biped slot '{}'", parsedMorph.triggeredBy),
             });
         }
 
@@ -115,7 +115,10 @@ auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::ex
                 m_config = nullptr;
                 return std::unexpected(std::move(pred.error()));
             }
-            list.push_back(CompiledMorphEntry{entry.value, std::move(*pred)});
+            list.push_back(CompiledMorphEntry{
+                .value = entry.value,
+                .when = std::move(*pred),
+            });
         }
 
         CompiledMorph compiled;
@@ -135,8 +138,8 @@ auto PredicateCompiler::BuildPredicate(const std::string& a_name) -> std::expect
 
     if (m_inProgress.contains(a_name)) {
         return std::unexpected(CompileError{
-            std::format("Predicates.{}", a_name),
-            "cycle detected in predicate references",
+            .location = std::format("Predicates.{}", a_name),
+            .message = "cycle detected in predicate references",
         });
     }
 
@@ -151,8 +154,8 @@ auto PredicateCompiler::BuildPredicate(const std::string& a_name) -> std::expect
     if (iter == m_config->predicates.end()) {
         // 语法层已做引用检查，理论上到不了这里。
         return std::unexpected(CompileError{
-            std::format("Predicates.{}", a_name),
-            "predicate not defined (should have been caught by syntax layer)",
+            .location = std::format("Predicates.{}", a_name),
+            .message = "predicate not defined (should have been caught by syntax layer)",
         });
     }
 
@@ -177,16 +180,16 @@ auto PredicateCompiler::BuildFromParsed(const Syntax::ParsedPredicate& a_parsed,
             auto factoryIter = m_factories.find(a_parsed.leafType);
             if (factoryIter == m_factories.end()) {
                 return std::unexpected(CompileError{
-                    a_path,
-                    std::format("unknown leaf type '{}'", a_parsed.leafType),
+                    .location = a_path,
+                    .message = std::format("unknown leaf type '{}'", a_parsed.leafType),
                 });
             }
 
             auto leaf = factoryIter->second(a_parsed.leafPayload);
             if (!leaf) {
                 return std::unexpected(CompileError{
-                    std::format("{}.{}", a_path, leaf.error().location),
-                    leaf.error().message,
+                    .location = std::format("{}.{}", a_path, leaf.error().location),
+                    .message = leaf.error().message,
                 });
             }
             return *leaf;
@@ -220,7 +223,10 @@ auto PredicateCompiler::BuildFromParsed(const Syntax::ParsedPredicate& a_parsed,
         }
     }
 
-    return std::unexpected(CompileError{a_path, "internal error: unknown predicate kind"});
+    return std::unexpected(CompileError{
+        .location = a_path,
+        .message = "internal error: unknown predicate kind",
+    });
 }
 
 }  // namespace MorphRules::Engine
