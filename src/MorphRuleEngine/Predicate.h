@@ -28,11 +28,11 @@ public:
     auto operator=(const Predicate&) -> Predicate& = delete;
     auto operator=(Predicate&&) -> Predicate& = delete;
 
-    virtual bool Evaluate(const PredicateContext& a_ctx) const = 0;
+    [[nodiscard]] virtual auto Evaluate(const PredicateContext& a_ctx) const -> bool = 0;
 
     // "恒真" 标记，仅由 AlwaysTruePredicate 返回 true。
     // MorphRuleEngine 在 equipped == false 时用它识别 Default 分支。
-    [[nodiscard]] virtual bool IsAlwaysTrue() const { return false; }
+    [[nodiscard]] virtual auto IsAlwaysTrue() const -> bool { return false; }
 };
 
 using PredicatePtr = std::shared_ptr<Predicate>;
@@ -42,9 +42,9 @@ using PredicatePtr = std::shared_ptr<Predicate>;
 // 恒真，编译层为 "Default" 保留谓词创建的实例。
 class AlwaysTruePredicate final : public Predicate {
 public:
-    bool Evaluate(const PredicateContext& /*a_ctx*/) const override { return true; }
+    [[nodiscard]] auto Evaluate(const PredicateContext& /*a_ctx*/) const -> bool override { return true; }
 
-    [[nodiscard]] bool IsAlwaysTrue() const override { return true; }
+    [[nodiscard]] auto IsAlwaysTrue() const -> bool override { return true; }
 };
 
 // 短路：任一子谓词为真则真。
@@ -52,7 +52,7 @@ class AnyOfPredicate final : public Predicate {
 public:
     explicit AnyOfPredicate(std::vector<PredicatePtr> a_children) : m_children(std::move(a_children)) {}
 
-    bool Evaluate(const PredicateContext& a_ctx) const override {
+    [[nodiscard]] auto Evaluate(const PredicateContext& a_ctx) const -> bool override {
         return std::ranges::any_of(m_children,
                                    [&a_ctx](const PredicatePtr& a_child) { return a_child->Evaluate(a_ctx); });
     }
@@ -66,7 +66,7 @@ class AllOfPredicate final : public Predicate {
 public:
     explicit AllOfPredicate(std::vector<PredicatePtr> a_children) : m_children(std::move(a_children)) {}
 
-    bool Evaluate(const PredicateContext& a_ctx) const override {
+    [[nodiscard]] auto Evaluate(const PredicateContext& a_ctx) const -> bool override {
         return std::ranges::all_of(m_children,
                                    [&a_ctx](const PredicatePtr& a_child) { return a_child->Evaluate(a_ctx); });
     }
@@ -79,7 +79,9 @@ class NotPredicate final : public Predicate {
 public:
     explicit NotPredicate(PredicatePtr a_child) : m_child(std::move(a_child)) {}
 
-    bool Evaluate(const PredicateContext& a_ctx) const override { return !m_child->Evaluate(a_ctx); }
+    [[nodiscard]] auto Evaluate(const PredicateContext& a_ctx) const -> bool override {
+        return !m_child->Evaluate(a_ctx);
+    }
 
 private:
     PredicatePtr m_child;
