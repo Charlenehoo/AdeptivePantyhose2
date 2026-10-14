@@ -6,6 +6,8 @@
 
 #include "Integration/SKEE/SKEEIntegration.h"
 
+#include <algorithm>
+
 namespace MorphRules::Engine {
 
 namespace {
@@ -14,22 +16,26 @@ namespace {
 //
 // equipped == true  ：正常求值谓词
 // equipped == false ：谓词一律视为不命中，仅 Default（恒真）分支可能命中
-bool EvaluateAndApply(RE::Actor* a_actor,
+auto EvaluateAndApply(RE::Actor* a_actor,
                       const std::string& a_morphName,
                       const CompiledMorph& a_morph,
                       RE::TESObjectARMO* a_armor,
-                      bool a_equipped) {
-    const PredicateContext ctx{a_actor, a_armor};
+                      bool a_equipped) -> bool {
+    const PredicateContext ctx{
+        .actor = a_actor,
+        .armor = a_armor,
+    };
 
-    for (const auto& rule : a_morph.rules) {
-        const bool matched = a_equipped ? rule.when->Evaluate(ctx) : rule.when->IsAlwaysTrue();
-        if (!matched) {
-            continue;
-        }
-        SKEEIntegration::GetSingleton().SetAbsolute(a_actor, a_morphName, rule.value);
-        return true;
+    const auto iter = std::ranges::find_if(a_morph.rules, [&](const CompiledMorphEntry& a_rule) {
+        return a_equipped ? a_rule.when->Evaluate(ctx) : a_rule.when->IsAlwaysTrue();
+    });
+
+    if (iter == a_morph.rules.end()) {
+        return false;
     }
-    return false;
+
+    SKEEIntegration::GetSingleton().SetAbsolute(a_actor, a_morphName, iter->value);
+    return true;
 }
 
 }  // namespace
