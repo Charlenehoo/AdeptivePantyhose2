@@ -4,10 +4,16 @@
 
 #include "MorphRuleEngine/PredicateCompiler.h"
 
+#include <array>
 #include <format>
 #include <nlohmann/json.hpp>
+#include <optional>
+#include <string_view>
+#include <utility>
 
 namespace {
+
+using Slot = RE::BGSBipedObjectForm::BipedObjectSlot;
 
 // magic_enum 依赖枚举值落在编译期可枚举的连续范围内。BipedObjectSlot
 // 是位标志枚举（kFX01 = 1<<31），扩展到覆盖整个值域会显著拖慢编译并
@@ -15,49 +21,54 @@ namespace {
 //
 // 列表须与 BGSBipedObjectForm.h 的 BipedObjectSlot 定义、
 // MorphRules.schema.json 的 BipedSlotName enum 三处保持一致。
-auto ParseBipedSlot(std::string_view a_name) -> std::optional<RE::BGSBipedObjectForm::BipedObjectSlot> {
-    using Slot = RE::BGSBipedObjectForm::BipedObjectSlot;
+//
+// 用 constexpr 数组而非 unordered_map：unordered_map 无法 constexpr，
+// 只能退化为 static const 局部变量，与项目 kCamelCase 常量约定冲突。
+// 32 项线性扫描在启动期调用一次，成本可忽略。
+constexpr auto kSlotMap = std::to_array<std::pair<std::string_view, Slot>>({
+    {"kHead", Slot::kHead},
+    {"kHair", Slot::kHair},
+    {"kBody", Slot::kBody},
+    {"kHands", Slot::kHands},
+    {"kForearms", Slot::kForearms},
+    {"kAmulet", Slot::kAmulet},
+    {"kRing", Slot::kRing},
+    {"kFeet", Slot::kFeet},
+    {"kCalves", Slot::kCalves},
+    {"kShield", Slot::kShield},
+    {"kTail", Slot::kTail},
+    {"kLongHair", Slot::kLongHair},
+    {"kCirclet", Slot::kCirclet},
+    {"kEars", Slot::kEars},
+    {"kModMouth", Slot::kModMouth},
+    {"kModNeck", Slot::kModNeck},
+    {"kModChestPrimary", Slot::kModChestPrimary},
+    {"kModBack", Slot::kModBack},
+    {"kModMisc1", Slot::kModMisc1},
+    {"kModPelvisPrimary", Slot::kModPelvisPrimary},
+    {"kDecapitateHead", Slot::kDecapitateHead},
+    {"kDecapitate", Slot::kDecapitate},
+    {"kModPelvisSecondary", Slot::kModPelvisSecondary},
+    {"kModLegRight", Slot::kModLegRight},
+    {"kModLegLeft", Slot::kModLegLeft},
+    {"kModFaceJewelry", Slot::kModFaceJewelry},
+    {"kModChestSecondary", Slot::kModChestSecondary},
+    {"kModShoulder", Slot::kModShoulder},
+    {"kModArmLeft", Slot::kModArmLeft},
+    {"kModArmRight", Slot::kModArmRight},
+    {"kModMisc2", Slot::kModMisc2},
+    {"kFX01", Slot::kFX01},
+});
 
-    static const std::unordered_map<std::string_view, Slot> kMap = {
-        {"kHead", Slot::kHead},
-        {"kHair", Slot::kHair},
-        {"kBody", Slot::kBody},
-        {"kHands", Slot::kHands},
-        {"kForearms", Slot::kForearms},
-        {"kAmulet", Slot::kAmulet},
-        {"kRing", Slot::kRing},
-        {"kFeet", Slot::kFeet},
-        {"kCalves", Slot::kCalves},
-        {"kShield", Slot::kShield},
-        {"kTail", Slot::kTail},
-        {"kLongHair", Slot::kLongHair},
-        {"kCirclet", Slot::kCirclet},
-        {"kEars", Slot::kEars},
-        {"kModMouth", Slot::kModMouth},
-        {"kModNeck", Slot::kModNeck},
-        {"kModChestPrimary", Slot::kModChestPrimary},
-        {"kModBack", Slot::kModBack},
-        {"kModMisc1", Slot::kModMisc1},
-        {"kModPelvisPrimary", Slot::kModPelvisPrimary},
-        {"kDecapitateHead", Slot::kDecapitateHead},
-        {"kDecapitate", Slot::kDecapitate},
-        {"kModPelvisSecondary", Slot::kModPelvisSecondary},
-        {"kModLegRight", Slot::kModLegRight},
-        {"kModLegLeft", Slot::kModLegLeft},
-        {"kModFaceJewelry", Slot::kModFaceJewelry},
-        {"kModChestSecondary", Slot::kModChestSecondary},
-        {"kModShoulder", Slot::kModShoulder},
-        {"kModArmLeft", Slot::kModArmLeft},
-        {"kModArmRight", Slot::kModArmRight},
-        {"kModMisc2", Slot::kModMisc2},
-        {"kFX01", Slot::kFX01},
-    };
-
-    if (auto iter = kMap.find(a_name); iter != kMap.end()) {
-        return iter->second;
+auto ParseBipedSlot(std::string_view a_name) -> std::optional<Slot> {
+    for (const auto& [name, slot] : kSlotMap) {
+        if (name == a_name) {
+            return slot;
+        }
     }
     return std::nullopt;
 }
+
 }  // namespace
 
 namespace MorphRules::Engine {
@@ -72,8 +83,8 @@ auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::ex
     m_inProgress.clear();
 
     // 先编译所有谓词（内部递归），保证 morphs 引用时已经缓存。
-    for (const auto& [name, _] : a_config.predicates) {
-        auto result = BuildPredicate(name);
+    for (const auto& entry : a_config.predicates) {
+        auto result = BuildPredicate(entry.first);
         if (!result) {
             m_config = nullptr;
             return std::unexpected(std::move(result.error()));
