@@ -181,6 +181,8 @@ extern "C" [[maybe_unused]] __declspec(dllexport) auto SKSEPlugin_Load(const SKS
     return true;
 }
 
+#ifdef SKYRIM_SUPPORT_AE
+// AE 版本：使用 PluginVersionData
 // NOLINTBEGIN(readability-identifier-naming)
 extern "C" [[maybe_unused]] __declspec(dllexport) constinit SKSE::PluginVersionData SKSEPlugin_Version = []() noexcept {
     // NOLINTEND(readability-identifier-naming)
@@ -195,3 +197,27 @@ extern "C" [[maybe_unused]] __declspec(dllexport) constinit SKSE::PluginVersionD
     data.MinimumRequiredXSEVersion(REL::Version{2, 3, 0});
     return data;
 }();
+#else
+// SE 1.5.97：传统 Query 方式
+// NOLINTBEGIN(readability-identifier-naming)
+extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Query(const SKSE::QueryInterface* a_skse,
+                                                                        SKSE::PluginInfo* a_info) {
+    // NOLINTEND(readability-identifier-naming)
+    a_info->infoVersion = SKSE::PluginInfo::kVersion;
+    a_info->name = Plugin::kName.data();
+    a_info->version = Plugin::kVersion.pack();
+
+    if (a_skse->IsEditor()) {
+        REX::CRITICAL("Loaded in editor, marking as incompatible");
+        return false;
+    }
+
+    const auto ver = a_skse->RuntimeVersion();
+    if (ver < SKSE::RUNTIME_SSE_1_5_39) {
+        REX::CRITICAL("Unsupported runtime version {}", ver);
+        return false;
+    }
+
+    return true;
+}
+#endif

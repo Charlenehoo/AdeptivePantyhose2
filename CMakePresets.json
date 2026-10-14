@@ -9,6 +9,7 @@
     {
       "name": "base",
       "hidden": true,
+      "description": "公共基础：生成器 / vcpkg / 运行时库 / 编译数据库",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
@@ -19,9 +20,11 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
+
     {
       "name": "compiler-msvc",
       "hidden": true,
+      "description": "维度：编译器 = MSVC",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": {
           "type": "FILEPATH",
@@ -44,14 +47,17 @@
     {
       "name": "compiler-clang",
       "hidden": true,
+      "description": "维度：编译器 = clang-cl（主要给 clangd 喂索引）",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "clang-cl",
         "CMAKE_CXX_COMPILER_FRONTEND_VARIANT": "MSVC"
       }
     },
+
     {
       "name": "type-debug",
       "hidden": true,
+      "description": "维度：构建类型 = Debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -59,47 +65,90 @@
     {
       "name": "type-release",
       "hidden": true,
+      "description": "维度：构建类型 = Release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
+
     {
-      "name": "msvc-debug",
-      "displayName": "MSVC Debug",
-      "inherits": ["base", "compiler-msvc", "type-debug"]
+      "name": "target-se",
+      "hidden": true,
+      "description": "维度：目标平台 = Skyrim SE 1.5.97",
+      "cacheVariables": {
+        "BUILD_SKYRIM_AE": "OFF"
+      }
     },
     {
-      "name": "msvc-release",
-      "displayName": "MSVC Release",
-      "inherits": ["base", "compiler-msvc", "type-release"]
+      "name": "target-ae",
+      "hidden": true,
+      "description": "维度：目标平台 = Skyrim AE 1.6.1130+",
+      "cacheVariables": {
+        "BUILD_SKYRIM_AE": "ON"
+      }
+    },
+
+    {
+      "name": "msvc-se-debug",
+      "displayName": "MSVC Debug (SE 1.5.97)",
+      "description": "MSVC × Debug × SE",
+      "inherits": ["base", "compiler-msvc", "type-debug", "target-se"]
     },
     {
-      "name": "clang-debug",
-      "displayName": "Clang Debug",
-      "inherits": ["base", "compiler-clang", "type-debug"]
+      "name": "msvc-se-release",
+      "displayName": "MSVC Release (SE 1.5.97)",
+      "description": "MSVC × Release × SE",
+      "inherits": ["base", "compiler-msvc", "type-release", "target-se"]
+    },
+
+    {
+      "name": "msvc-ae-debug",
+      "displayName": "MSVC Debug (AE)",
+      "description": "MSVC × Debug × AE",
+      "inherits": ["base", "compiler-msvc", "type-debug", "target-ae"]
     },
     {
-      "name": "clang-release",
-      "displayName": "Clang Release",
-      "inherits": ["base", "compiler-clang", "type-release"]
+      "name": "msvc-ae-release",
+      "displayName": "MSVC Release (AE)",
+      "description": "MSVC × Release × AE",
+      "inherits": ["base", "compiler-msvc", "type-release", "target-ae"]
+    },
+
+    {
+      "name": "clang-se-debug",
+      "displayName": "Clang Debug (SE 1.5.97)",
+      "description": "Clang × Debug × SE，仅用于 clangd 索引",
+      "inherits": ["base", "compiler-clang", "type-debug", "target-se"]
+    },
+    {
+      "name": "clang-se-release",
+      "displayName": "Clang Release (SE 1.5.97)",
+      "description": "Clang × Release × SE，仅用于 clangd 索引",
+      "inherits": ["base", "compiler-clang", "type-release", "target-se"]
+    },
+
+    {
+      "name": "clang-ae-debug",
+      "displayName": "Clang Debug (AE)",
+      "description": "Clang × Debug × AE，仅用于 clangd 索引",
+      "inherits": ["base", "compiler-clang", "type-debug", "target-ae"]
+    },
+    {
+      "name": "clang-ae-release",
+      "displayName": "Clang Release (AE)",
+      "description": "Clang × Release × AE，仅用于 clangd 索引",
+      "inherits": ["base", "compiler-clang", "type-release", "target-ae"]
     }
   ],
+
   "buildPresets": [
-    {
-      "name": "msvc-debug",
-      "configurePreset": "msvc-debug"
-    },
-    {
-      "name": "msvc-release",
-      "configurePreset": "msvc-release"
-    },
-    {
-      "name": "clang-debug",
-      "configurePreset": "clang-debug"
-    },
-    {
-      "name": "clang-release",
-      "configurePreset": "clang-release"
-    }
+    { "name": "msvc-se-debug", "configurePreset": "msvc-se-debug" },
+    { "name": "msvc-se-release", "configurePreset": "msvc-se-release" },
+    { "name": "msvc-ae-debug", "configurePreset": "msvc-ae-debug" },
+    { "name": "msvc-ae-release", "configurePreset": "msvc-ae-release" },
+    { "name": "clang-se-debug", "configurePreset": "clang-se-debug" },
+    { "name": "clang-se-release", "configurePreset": "clang-se-release" },
+    { "name": "clang-ae-debug", "configurePreset": "clang-ae-debug" },
+    { "name": "clang-ae-release", "configurePreset": "clang-ae-release" }
   ]
 }

@@ -1,5 +1,5 @@
 CompileFlags:
-  CompilationDatabase: build/clang-debug
+  CompilationDatabase: build/clang-ae-debug
 ---
 If:
   PathMatch: .*[\\/](vendor|extern)[\\/].*

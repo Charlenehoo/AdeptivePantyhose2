@@ -15,6 +15,18 @@ configure_file(
     @ONLY
 )
 
+# ─────── 目标平台：SE 1.5.97 / AE 1.6.1130+ ───────
+# 注意：这两个宏必须在 add_subdirectory(CommonLibSSE) 之前定义，
+# 否则 CommonLibSSE 会按默认（SE）编译，与 AE 产物不匹配。
+option(BUILD_SKYRIM_AE "Build for Skyrim AE" OFF)
+
+if(BUILD_SKYRIM_AE)
+    add_compile_definitions(SKYRIM_AE SKYRIM_SUPPORT_AE)
+    message(STATUS "Building for Skyrim AE (1.6.1130+)")
+else()
+    message(STATUS "Building for Skyrim SE 1.5.97")
+endif()
+
 add_library(
     "${PROJECT_NAME}" SHARED
     src/main.cpp
@@ -27,6 +39,14 @@ add_library(
     src/MorphRuleEngine/Leaves/FormIDRangePredicate.cpp
 )
 target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_23)
+
+# ─────── 产物名区分：SE / AE 不能互相覆盖 ───────
+if(BUILD_SKYRIM_AE)
+    set_target_properties("${PROJECT_NAME}" PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_AE")
+else()
+    set_target_properties("${PROJECT_NAME}" PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_SE")
+endif()
+
 if(MSVC)
     target_compile_options("${PROJECT_NAME}" PRIVATE
         /utf-8
@@ -41,7 +61,6 @@ target_include_directories(
     "${CMAKE_CURRENT_BINARY_DIR}/src"
 )
 
-set(SKYRIM_SUPPORT_AE ON)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/CommonLibSSE" CommonLibSSE EXCLUDE_FROM_ALL SYSTEM)
 if(TARGET CommonLibSSE)
     target_compile_options(CommonLibSSE PRIVATE
@@ -66,8 +85,17 @@ target_link_libraries(
 
 target_precompile_headers("${PROJECT_NAME}" PRIVATE src/pch.h)
 
+# ─────── MO2 自动部署 ───────
+# SE 与 AE 部署到不同的 mod 目录，避免互相覆盖。
+# 用户按游戏版本在 MO2 里启用对应的那个 mod。
 if(DEFINED ENV{MO2})
-    set(MO2_MOD_DIR "$ENV{MO2}/mods/${PROJECT_NAME}")
+    if(BUILD_SKYRIM_AE)
+        set(MO2_MOD_NAME "${PROJECT_NAME}_AE")
+    else()
+        set(MO2_MOD_NAME "${PROJECT_NAME}_SE")
+    endif()
+
+    set(MO2_MOD_DIR "$ENV{MO2}/mods/${MO2_MOD_NAME}")
     set(MO2_PLUGIN_DIR "${MO2_MOD_DIR}/SKSE/Plugins")
 
     # ---- DLL ----
