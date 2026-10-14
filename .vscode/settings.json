@@ -8,12 +8,10 @@
   },
   "files.associations": {
     ".clang-format": "yaml",
-    ".clang-format-ignore": "plaintext",
     ".clang-tidy": "yaml",
     ".clangd": "yaml",
     "CMakeLists.txt": "cmake",
     "*.cmake": "cmake",
-    "*.h.in": "plaintext",
     "*.osp": "xml"
   },
   "json.schemaDownload.trustedDomains": {

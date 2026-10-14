@@ -1,0 +1,8 @@
+# cmake/.clangd
+# Plugin.h.in 是 CMake 模板文件，不是真正的 C++ 源文件。
+# clangd 会尝试把它当 C++ 处理并可能报错，这里屏蔽诊断。
+# 之所以不把它标成 plaintext，是为了保留 C++ 语法高亮和 clang-format。
+If:
+  PathMatch: .*\.h\.in$
+Diagnostics:
+  Suppress: "*"

@@ -14,7 +14,9 @@ inline constexpr REL::Version kVersion {
     // clang-format on
 };
 
-inline constexpr std::string_view kName {"@PROJECT_NAME@"};
-inline constexpr std::string_view kAuthor {"@PROJECT_AUTHOR@"};
-inline constexpr std::string_view kAuthorEmail {"@PROJECT_AUTHOR_EMAIL@"};
-} // namespace Plugin
+inline constexpr std::string_view kName{"@PROJECT_NAME@"};
+inline constexpr const char* kNameCStr = "@PROJECT_NAME@";
+inline constexpr std::string_view kAuthor{"@PROJECT_AUTHOR@"};
+inline constexpr std::string_view kAuthorEmail{"@PROJECT_AUTHOR_EMAIL@"};
+
+}  // namespace Plugin

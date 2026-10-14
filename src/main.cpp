@@ -204,7 +204,7 @@ extern "C" [[maybe_unused]] __declspec(dllexport) bool SKSEPlugin_Query(const SK
                                                                         SKSE::PluginInfo* a_info) {
     // NOLINTEND(readability-identifier-naming)
     a_info->infoVersion = SKSE::PluginInfo::kVersion;
-    a_info->name = Plugin::kName.data();
+    a_info->name = Plugin::kNameCStr;
     a_info->version = Plugin::kVersion.pack();
 
     if (a_skse->IsEditor()) {
