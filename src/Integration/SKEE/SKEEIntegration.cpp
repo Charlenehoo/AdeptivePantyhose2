@@ -22,12 +22,17 @@ constexpr skee_u32 kBodyMorphMinVersion = 4;
 // 本插件在 SKEE BodyMorph 系统中的命名空间 key。
 // 用于隔离本插件设置的 morph，避免与其他插件冲突。
 // 修改此值会让已存档的 morph 状态失效。
-constexpr const char* kMorphNamespace = "AdeptivePantyhoseMorphKey";
+//
+// 变量名不带 "Morph"：SKEE 的 SetMorph / ClearMorph 第二形参是
+// morphName、第三是 morphKey，两者相邻且都是 const char*。若常量名
+// 含 "Morph"，clang-tidy 的 readability-suspicious-call-argument
+// 会把实参名与 morphName 形参做词根匹配，误报"可能传反"。
+constexpr const char* kNamespaceKey = "AdeptivePantyhoseMorphKey";
 
 // 旧版本使用的 key。每次 SetAbsolute 时顺手清理，兼容从 CH_ 前缀
 // 版本升级的存档，避免老值和新值叠加。一次性兼容代码，足够久之后
 // 可以移除。
-constexpr const char* kLegacyMorphNamespace = "CH_AdeptivePantyhoseMorphKey";
+constexpr const char* kLegacyNamespaceKey = "CH_AdeptivePantyhoseMorphKey";
 
 }  // namespace
 
@@ -81,16 +86,16 @@ void SKEEIntegration::SetAbsolute(RE::Actor* a_actor, std::string_view a_morphNa
     }
 
     // std::string_view 不保证 null 终止，转 string 之后取 c_str()。
-    const std::string name{a_morphName};
-    const char* cstr = name.c_str();
+    const std::string morphName{a_morphName};
+    const char* morphNameCStr = morphName.c_str();
 
     // 旧版遗留 key 清理。幂等——该 key 下没有记录时 ClearMorph 是空调用。
-    m_bodyMorph->ClearMorph(a_actor, cstr, kLegacyMorphNamespace);
+    m_bodyMorph->ClearMorph(a_actor, morphNameCStr, kLegacyNamespaceKey);
 
     // SKEE 的 SetMorph 是相对变化量，要得到绝对值 v 必须先 Clear 再 Set。
-    m_bodyMorph->ClearMorph(a_actor, cstr, kMorphNamespace);
+    m_bodyMorph->ClearMorph(a_actor, morphNameCStr, kNamespaceKey);
     if (a_value != 0.0F) {
-        m_bodyMorph->SetMorph(a_actor, cstr, kMorphNamespace, a_value);
+        m_bodyMorph->SetMorph(a_actor, morphNameCStr, kNamespaceKey, a_value);
     }
 }
 
