@@ -11,10 +11,58 @@
 #include "MorphRuleEngine/PredicateCompiler.h"
 #include "Plugin.h"
 
+#include <cstddef>
+#include <string>
 
 namespace {
 
 constexpr const char* kMorphRulesPath = "Data/SKSE/AdeptivePantyhose/MorphRules.json";
+
+// 把解析出来的规则打到 DEBUG 日志。用户报告"某个鞋没识别"时，
+// 一眼就能确认规则有没有被正确解析——比追问"你 JSON 怎么写的"高效。
+void DumpParsedConfig(const MorphRules::Syntax::ParsedConfig& a_config) {
+    using MorphRules::Syntax::PredicateKind;
+
+    REX::DEBUG("[Rules] parsed: {} predicate(s), {} morph(s)", a_config.predicates.size(), a_config.morphs.size());
+
+    for (const auto& [name, pred] : a_config.predicates) {
+        switch (pred.kind) {
+            case PredicateKind::kLeaf: {
+                std::string payload = pred.leafPayload.dump();
+                constexpr std::size_t kMaxPayloadLen = 200;
+                if (payload.size() > kMaxPayloadLen) {
+                    payload.resize(kMaxPayloadLen);
+                    payload += "...";
+                }
+                REX::DEBUG("  predicate '{}': leaf {}({})", name, pred.leafType, payload);
+                break;
+            }
+            case PredicateKind::kAnyOf:
+            case PredicateKind::kAllOf: {
+                std::string joined;
+                for (std::size_t i = 0; i < pred.refs.size(); ++i) {
+                    if (i > 0) {
+                        joined += ", ";
+                    }
+                    joined += pred.refs.at(i);
+                }
+                const char* kind = pred.kind == PredicateKind::kAnyOf ? "AnyOf" : "AllOf";
+                REX::DEBUG("  predicate '{}': {}[{}]", name, kind, joined);
+                break;
+            }
+            case PredicateKind::kNot:
+                REX::DEBUG("  predicate '{}': Not({})", name, pred.ref);
+                break;
+        }
+    }
+
+    for (const auto& [name, morph] : a_config.morphs) {
+        REX::DEBUG("  morph '{}' triggeredBy='{}' rules={}", name, morph.triggeredBy, morph.rules.size());
+        for (std::size_t i = 0; i < morph.rules.size(); ++i) {
+            REX::DEBUG("    rule[{}] value={} when='{}'", i, morph.rules.at(i).value, morph.rules.at(i).whenRef);
+        }
+    }
+}
 
 void LoadMorphRules() {
     using namespace MorphRules;
@@ -24,6 +72,8 @@ void LoadMorphRules() {
         REX::FAIL("MorphRules.json syntax error at {}: {}", parsed.error().location, parsed.error().message);
         return;
     }
+
+    DumpParsedConfig(*parsed);
 
     Engine::PredicateCompiler compiler;
     compiler.RegisterLeaf("ByKeywords", &Engine::MakeKeywordPredicate);
@@ -58,6 +108,9 @@ void HandlePostLoadGame() {
         return;
     }
 
+    // INFO 级：读档兜底是唯一走 OnActorLoaded 的路径，日志里出现
+    // 说明读档场景确实触发了。用户报告"读档后没生效"时先看这行在不在。
+    REX::INFO("[PostLoad] running rules for player '{}'({:08X})", player->GetName(), player->GetFormID());
     MorphRules::Engine::MorphRuleEngine::GetSingleton().OnActorLoaded(player);
 }
 
@@ -105,6 +158,13 @@ extern "C" [[maybe_unused]] __declspec(dllexport) auto SKSEPlugin_Load(const SKS
     }
 
     SKSE::Init(a_skse);
+
+    // 版本信息走 INFO：用户报告问题时附带的日志会包含这几行，
+    // 维护者一眼看到游戏 / SKSE / 插件版本是否匹配，不用追问。
+    // API 参照 powerofthree's Tweaks：都从 LoadInterface 取。
+    REX::INFO("Plugin version: {}", Plugin::kVersion);
+    REX::INFO("SKSE version: {}", a_skse->SKSEVersion());
+    REX::INFO("Game version: {}", a_skse->RuntimeVersion());
 
     const auto* messaging = SKSE::GetMessagingInterface();
     if (messaging == nullptr) {
