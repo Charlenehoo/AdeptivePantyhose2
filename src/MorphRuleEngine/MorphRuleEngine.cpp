@@ -7,6 +7,9 @@
 #include "Integration/SKEE/SKEEIntegration.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <string>
 
 namespace MorphRules::Engine {
 
@@ -31,8 +34,14 @@ auto EvaluateAndApply(RE::Actor* a_actor,
     });
 
     if (iter == a_morph.rules.end()) {
+        // 全部未命中。equipped=false 时是预期行为——谓词一律视为不命中，
+        // 只有 Default 分支能命中；若 Default 都没命中，说明规则表写错了。
+        REX::DEBUG("      no rule matched (equipped={}, rules={})", a_equipped, a_morph.rules.size());
         return false;
     }
+
+    const auto index = static_cast<std::size_t>(std::distance(a_morph.rules.begin(), iter));
+    REX::DEBUG("      rule[{}] value={} equipped={} -> MATCH", index, iter->value, a_equipped);
 
     SKEEIntegration::GetSingleton().SetAbsolute(a_actor, a_morphName, iter->value);
     return true;
@@ -55,7 +64,14 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
     bool anyApplied = false;
 
     for (const auto& [morphName, morph] : m_rules.morphs) {
-        if (!a_armor->HasPartOf(morph.triggeredBy)) {
+        const bool slotMatch = a_armor->HasPartOf(morph.triggeredBy);
+
+        REX::DEBUG("  morph '{}' triggeredBy={:08X} -> {}",
+                   morphName,
+                   std::to_underlying(morph.triggeredBy),
+                   slotMatch ? "slot-match" : "skip");
+
+        if (!slotMatch) {
             continue;
         }
         if (EvaluateAndApply(a_actor, morphName, morph, a_armor, a_equipped)) {
@@ -64,6 +80,7 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
     }
 
     if (anyApplied) {
+        REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", a_actor->GetName(), a_actor->GetFormID());
         SKEEIntegration::GetSingleton().UpdateModelWeight(a_actor);
     }
 }
@@ -78,12 +95,24 @@ void MorphRuleEngine::OnActorLoaded(RE::Actor* a_actor) {
     for (const auto& [morphName, morph] : m_rules.morphs) {
         auto* armor = a_actor->GetWornArmor(morph.triggeredBy);
         const bool equipped = armor != nullptr;
+
+        if (equipped) {
+            REX::DEBUG("  morph '{}' triggeredBy={:08X} worn='{}'({:08X})",
+                       morphName,
+                       std::to_underlying(morph.triggeredBy),
+                       armor->GetName(),
+                       armor->GetFormID());
+        } else {
+            REX::DEBUG("  morph '{}' triggeredBy={:08X} worn=<none>", morphName, std::to_underlying(morph.triggeredBy));
+        }
+
         if (EvaluateAndApply(a_actor, morphName, morph, armor, equipped)) {
             anyApplied = true;
         }
     }
 
     if (anyApplied) {
+        REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", a_actor->GetName(), a_actor->GetFormID());
         SKEEIntegration::GetSingleton().UpdateModelWeight(a_actor);
     }
 }
