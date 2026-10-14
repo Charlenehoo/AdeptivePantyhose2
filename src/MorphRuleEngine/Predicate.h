@@ -1,6 +1,7 @@
 // src/MorphRuleEngine/Predicate.h
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -19,7 +20,13 @@ struct PredicateContext {
 
 class Predicate {
 public:
+    Predicate() = default;
     virtual ~Predicate() = default;
+
+    Predicate(const Predicate&) = delete;
+    Predicate(Predicate&&) = delete;
+    auto operator=(const Predicate&) -> Predicate& = delete;
+    auto operator=(Predicate&&) -> Predicate& = delete;
 
     virtual bool Evaluate(const PredicateContext& a_ctx) const = 0;
 
@@ -46,12 +53,8 @@ public:
     explicit AnyOfPredicate(std::vector<PredicatePtr> a_children) : m_children(std::move(a_children)) {}
 
     bool Evaluate(const PredicateContext& a_ctx) const override {
-        for (const auto& child : m_children) {
-            if (child->Evaluate(a_ctx)) {
-                return true;
-            }
-        }
-        return false;
+        return std::ranges::any_of(m_children,
+                                   [&a_ctx](const PredicatePtr& a_child) { return a_child->Evaluate(a_ctx); });
     }
 
 private:
@@ -64,12 +67,8 @@ public:
     explicit AllOfPredicate(std::vector<PredicatePtr> a_children) : m_children(std::move(a_children)) {}
 
     bool Evaluate(const PredicateContext& a_ctx) const override {
-        for (const auto& child : m_children) {
-            if (!child->Evaluate(a_ctx)) {
-                return false;
-            }
-        }
-        return true;
+        return std::ranges::all_of(m_children,
+                                   [&a_ctx](const PredicatePtr& a_child) { return a_child->Evaluate(a_ctx); });
     }
 
 private:
