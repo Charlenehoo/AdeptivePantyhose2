@@ -4,7 +4,8 @@
 
 #include "MorphRuleEngine/Leaves/FormIDRangePredicate.h"
 
-#include <charconv>
+#include <absl/strings/numbers.h>
+#include <algorithm>
 #include <format>
 #include <nlohmann/json.hpp>
 #include <string_view>
@@ -13,32 +14,32 @@ namespace MorphRules::Engine {
 
 namespace {
 
-// 解析 "0x1234" 形式的十六进制字符串。std::from_chars 不识别 0x 前缀，
-// 手动剥离。
-auto ParseHexFormID(std::string_view a_text, std::string_view a_path, std::string_view a_field)
-    -> std::expected<RE::FormID, LeafError> {
-    if (a_text.empty()) {
-        return std::unexpected(LeafError{std::string(a_path), std::format("'{}' must not be empty", a_field)});
-    }
+// ParseHexFormID 的路径信息。path / field 打成一个参数，避免两个
+// string_view 相邻被误传（bugprone-easily-swappable-parameters）。
+struct HexField {
+    std::string path;
+    std::string_view field;
+};
 
-    if (a_text.size() >= 2 && a_text[0] == '0' && (a_text[1] == 'x' || a_text[1] == 'X')) {
-        a_text.remove_prefix(2);
-    }
-
+// 解析 "0x1234" 形式的十六进制字符串。
+//
+// 用 absl::SimpleHexAtoi 而非 std::from_chars：后者不识别 0x / 0X
+// 前缀，遇到 "0xDDF" 会在 'x' 处停下并"成功"返回 0；要支持前缀得手
+// 动剥离。absl::SimpleHexAtoi 按文档忽略可选的 0x / 0X 前缀，且拒绝
+// 尾随垃圾，语义正好。
+auto ParseHexFormID(std::string_view a_text, HexField a_field) -> std::expected<RE::FormID, LeafError> {
     if (a_text.empty()) {
         return std::unexpected(LeafError{
-            std::string(a_path),
-            std::format("'{}' must contain hex digits after the '0x' prefix", a_field),
+            .location = a_field.path,
+            .message = std::format("'{}' must not be empty", a_field.field),
         });
     }
 
     std::uint32_t value = 0;
-    const auto result = std::from_chars(a_text.data(), a_text.data() + a_text.size(), value, 16);
-
-    if (result.ec != std::errc{} || result.ptr != a_text.data() + a_text.size()) {
+    if (!absl::SimpleHexAtoi(a_text, &value)) {
         return std::unexpected(LeafError{
-            std::string(a_path),
-            std::format("'{}' must be a hexadecimal string (e.g. \"0xDDF\")", a_field),
+            .location = a_field.path,
+            .message = std::format("'{}' must be a hexadecimal string (e.g. \"0xDDF\")", a_field.field),
         });
     }
 
@@ -50,29 +51,48 @@ auto ParseRange(const nlohmann::json& a_json, std::size_t a_index)
     const auto basePath = std::format("ByFormIDRange[{}]", a_index);
 
     if (!a_json.is_object()) {
-        return std::unexpected(LeafError{basePath, "must be an object"});
+        return std::unexpected(LeafError{
+            .location = basePath,
+            .message = "must be an object",
+        });
     }
 
     if (!a_json.contains("Plugin") || !a_json.contains("Min") || !a_json.contains("Max")) {
-        return std::unexpected(LeafError{basePath, "missing one of required fields 'Plugin' / 'Min' / 'Max'"});
+        return std::unexpected(LeafError{
+            .location = basePath,
+            .message = "missing one of required fields 'Plugin' / 'Min' / 'Max'",
+        });
     }
 
     // Plugin
     const auto& pluginJson = a_json.at("Plugin");
     if (!pluginJson.is_string()) {
-        return std::unexpected(LeafError{std::format("{}.Plugin", basePath), "must be a string"});
+        return std::unexpected(LeafError{
+            .location = std::format("{}.Plugin", basePath),
+            .message = "must be a string",
+        });
     }
     auto plugin = pluginJson.get<std::string>();
     if (plugin.empty()) {
-        return std::unexpected(LeafError{std::format("{}.Plugin", basePath), "must not be empty"});
+        return std::unexpected(LeafError{
+            .location = std::format("{}.Plugin", basePath),
+            .message = "must not be empty",
+        });
     }
 
     // Min
     const auto& minJson = a_json.at("Min");
     if (!minJson.is_string()) {
-        return std::unexpected(LeafError{std::format("{}.Min", basePath), "must be a hex string (e.g. \"0xDDF\")"});
+        return std::unexpected(LeafError{
+            .location = std::format("{}.Min", basePath),
+            .message = "must be a hex string (e.g. \"0xDDF\")",
+        });
     }
-    auto minResult = ParseHexFormID(minJson.get<std::string>(), std::format("{}.Min", basePath), "Min");
+    auto minResult = ParseHexFormID(minJson.get<std::string>(),
+                                    HexField{
+                                        .path = std::format("{}.Min", basePath),
+                                        .field = "Min",
+                                    });
     if (!minResult) {
         return std::unexpected(std::move(minResult.error()));
     }
@@ -80,17 +100,24 @@ auto ParseRange(const nlohmann::json& a_json, std::size_t a_index)
     // Max
     const auto& maxJson = a_json.at("Max");
     if (!maxJson.is_string()) {
-        return std::unexpected(LeafError{std::format("{}.Max", basePath), "must be a hex string (e.g. \"0xDDF\")"});
+        return std::unexpected(LeafError{
+            .location = std::format("{}.Max", basePath),
+            .message = "must be a hex string (e.g. \"0xDDF\")",
+        });
     }
-    auto maxResult = ParseHexFormID(maxJson.get<std::string>(), std::format("{}.Max", basePath), "Max");
+    auto maxResult = ParseHexFormID(maxJson.get<std::string>(),
+                                    HexField{
+                                        .path = std::format("{}.Max", basePath),
+                                        .field = "Max",
+                                    });
     if (!maxResult) {
         return std::unexpected(std::move(maxResult.error()));
     }
 
     if (*maxResult < *minResult) {
         return std::unexpected(LeafError{
-            basePath,
-            std::format("Max ({:#x}) must be >= Min ({:#x})", *maxResult, *minResult),
+            .location = basePath,
+            .message = std::format("Max ({:#x}) must be >= Min ({:#x})", *maxResult, *minResult),
         });
     }
 
@@ -116,20 +143,23 @@ bool FormIDRangePredicate::Evaluate(const PredicateContext& a_ctx) const {
     const std::string_view fileName = file->GetFilename();
     const RE::FormID localID = a_ctx.armor->GetLocalFormID();
 
-    for (const auto& range : m_ranges) {
-        if (fileName == range.plugin && localID >= range.min && localID <= range.max) {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(m_ranges, [&](const Range& a_range) {
+        return fileName == a_range.plugin && localID >= a_range.min && localID <= a_range.max;
+    });
 }
 
 auto MakeFormIDRangePredicate(const nlohmann::json& a_payload) -> std::expected<PredicatePtr, LeafError> {
     if (!a_payload.is_array()) {
-        return std::unexpected(LeafError{"ByFormIDRange", "must be an array of range objects"});
+        return std::unexpected(LeafError{
+            .location = "ByFormIDRange",
+            .message = "must be an array of range objects",
+        });
     }
     if (a_payload.empty()) {
-        return std::unexpected(LeafError{"ByFormIDRange", "must not be empty"});
+        return std::unexpected(LeafError{
+            .location = "ByFormIDRange",
+            .message = "must not be empty",
+        });
     }
 
     std::vector<FormIDRangePredicate::Range> ranges;
