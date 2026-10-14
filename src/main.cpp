@@ -9,6 +9,8 @@
 #include "MorphRuleEngine/Leaves/KeywordPredicate.h"
 #include "MorphRuleEngine/MorphRuleEngine.h"
 #include "MorphRuleEngine/PredicateCompiler.h"
+#include "Plugin.h"
+
 
 namespace {
 
