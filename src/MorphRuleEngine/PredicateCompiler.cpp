@@ -77,16 +77,29 @@ void PredicateCompiler::RegisterLeaf(std::string a_type, LeafFactory a_factory) 
     m_factories.insert_or_assign(std::move(a_type), std::move(a_factory));
 }
 
+// 编译态生命周期的唯一管理者：进入时绑定 m_currentConfig 并清空缓存，
+// 返回前（无论成功失败）一律清空三个成员。CompileImpl 内部不做任何
+// 收尾，加 return 路径不会引入悬空。
 auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::expected<CompiledRules, CompileError> {
-    m_config = &a_config;
+    m_currentConfig = &a_config;
     m_compiled.clear();
     m_inProgress.clear();
 
+    auto result = CompileImpl(a_config);
+
+    m_currentConfig = nullptr;
+    m_compiled.clear();
+    m_inProgress.clear();
+
+    return result;
+}
+
+auto PredicateCompiler::CompileImpl(const Syntax::ParsedConfig& a_config)
+    -> std::expected<CompiledRules, CompileError> {
     // 先编译所有谓词（内部递归），保证 morphs 引用时已经缓存。
     for (const auto& entry : a_config.predicates) {
         auto result = BuildPredicate(entry.first);
         if (!result) {
-            m_config = nullptr;
             return std::unexpected(std::move(result.error()));
         }
     }
@@ -99,7 +112,6 @@ auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::ex
 
         auto slot = ParseBipedSlot(parsedMorph.triggeredBy);
         if (!slot.has_value()) {
-            m_config = nullptr;
             return std::unexpected(CompileError{
                 .location = std::format("{}.TriggeredBy", basePath),
                 .message = std::format("unknown biped slot '{}'", parsedMorph.triggeredBy),
@@ -112,7 +124,6 @@ auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::ex
         for (const auto& entry : parsedMorph.rules) {
             auto pred = BuildPredicate(entry.whenRef);
             if (!pred) {
-                m_config = nullptr;
                 return std::unexpected(std::move(pred.error()));
             }
             list.push_back(CompiledMorphEntry{
@@ -127,7 +138,6 @@ auto PredicateCompiler::Compile(const Syntax::ParsedConfig& a_config) -> std::ex
         rules.morphs.emplace(morphName, std::move(compiled));
     }
 
-    m_config = nullptr;
     return rules;
 }
 
@@ -150,8 +160,8 @@ auto PredicateCompiler::BuildPredicate(const std::string& a_name) -> std::expect
         return pred;
     }
 
-    auto iter = m_config->predicates.find(a_name);
-    if (iter == m_config->predicates.end()) {
+    auto iter = m_currentConfig->predicates.find(a_name);
+    if (iter == m_currentConfig->predicates.end()) {
         // 语法层已做引用检查，理论上到不了这里。
         return std::unexpected(CompileError{
             .location = std::format("Predicates.{}", a_name),
