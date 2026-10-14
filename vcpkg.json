@@ -1,5 +1,9 @@
 {
   "name": "adeptive-pantyhose",
   "version": "3.0.0",
-  "dependencies": ["abseil", "commonlib-shared", "nlohmann-json"]
+  "dependencies": [
+    "abseil",
+    "commonlib-shared",
+    "nlohmann-json"
+  ]
 }
