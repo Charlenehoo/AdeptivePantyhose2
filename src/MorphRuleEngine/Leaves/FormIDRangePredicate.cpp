@@ -16,32 +16,27 @@ namespace MorphRules::Engine {
 
 namespace {
 
-// ParseHexFormID 的路径信息。path / field 打成一个参数，避免两个
-// string_view 相邻被误传（bugprone-easily-swappable-parameters）。
-struct HexField {
-    std::string path;
-    std::string_view field;
-};
-
-// 解析 "0x1234" 形式的十六进制字符串。
+// 解析 "0x1234" 形式的十六进制字符串。a_path 是出错的 JSON 路径，
+// 直接用作 LeafError::location，不额外接收字段名——字段身份已包含在
+// path 尾部（如 "ByFormIDRange[0].Min"），错误消息里重复一份纯属冗余。
 //
 // 用 absl::SimpleHexAtoi 而非 std::from_chars：后者不识别 0x / 0X
 // 前缀，遇到 "0xDDF" 会在 'x' 处停下并"成功"返回 0；要支持前缀得手
 // 动剥离。absl::SimpleHexAtoi 按文档忽略可选的 0x / 0X 前缀，且拒绝
 // 尾随垃圾，语义正好。
-auto ParseHexFormID(std::string_view a_text, HexField a_field) -> std::expected<RE::FormID, LeafError> {
+auto ParseHexFormID(std::string_view a_text, std::string a_path) -> std::expected<RE::FormID, LeafError> {
     if (a_text.empty()) {
         return std::unexpected(LeafError{
-            .location = a_field.path,
-            .message = std::format("'{}' must not be empty", a_field.field),
+            .location = std::move(a_path),
+            .message = "must not be empty",
         });
     }
 
     std::uint32_t value = 0;
     if (!absl::SimpleHexAtoi(a_text, &value)) {
         return std::unexpected(LeafError{
-            .location = a_field.path,
-            .message = std::format("'{}' must be a hexadecimal string (e.g. \"0xDDF\")", a_field.field),
+            .location = std::move(a_path),
+            .message = "must be a hexadecimal string (e.g. \"0xDDF\")",
         });
     }
 
@@ -90,11 +85,7 @@ auto ParseRange(const nlohmann::json& a_json, std::size_t a_index)
             .message = "must be a hex string (e.g. \"0xDDF\")",
         });
     }
-    auto minResult = ParseHexFormID(minJson.get<std::string>(),
-                                    HexField{
-                                        .path = std::format("{}.Min", basePath),
-                                        .field = "Min",
-                                    });
+    auto minResult = ParseHexFormID(minJson.get<std::string>(), std::format("{}.Min", basePath));
     if (!minResult) {
         return std::unexpected(std::move(minResult.error()));
     }
@@ -107,11 +98,7 @@ auto ParseRange(const nlohmann::json& a_json, std::size_t a_index)
             .message = "must be a hex string (e.g. \"0xDDF\")",
         });
     }
-    auto maxResult = ParseHexFormID(maxJson.get<std::string>(),
-                                    HexField{
-                                        .path = std::format("{}.Max", basePath),
-                                        .field = "Max",
-                                    });
+    auto maxResult = ParseHexFormID(maxJson.get<std::string>(), std::format("{}.Max", basePath));
     if (!maxResult) {
         return std::unexpected(std::move(maxResult.error()));
     }
