@@ -5,6 +5,7 @@
 #include "MorphRuleEngine/Leaves/KeywordPredicate.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <format>
 #include <nlohmann/json.hpp>
 

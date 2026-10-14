@@ -6,6 +6,8 @@
 
 #include <absl/strings/numbers.h>
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <format>
 #include <nlohmann/json.hpp>
 #include <string_view>

@@ -4,8 +4,10 @@
 
 #include "Config/SyntaxParser.h"
 
+#include <cstddef>
 #include <format>
 #include <fstream>
+#include <utility>
 
 namespace MorphRules::Syntax {
 
