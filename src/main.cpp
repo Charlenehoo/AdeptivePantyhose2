@@ -194,7 +194,7 @@ extern "C" [[maybe_unused]] __declspec(dllexport) constinit SKSE::PluginVersionD
     data.UsesAddressLibrary();
     data.UsesUpdatedStructs();
     data.CompatibleVersions({SKSE::RUNTIME_SSE_LATEST});
-    data.MinimumRequiredXSEVersion(REL::Version{2, 3, 0});
+    data.MinimumRequiredXSEVersion(REL::Version{2, 2, 5});
     return data;
 }();
 #else
