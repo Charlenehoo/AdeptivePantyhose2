@@ -5,6 +5,7 @@
 #include "MorphRuleEngine/MorphRuleEngine.h"
 
 #include "Integration/SKEE/SKEEIntegration.h"
+#include "Support/FormName.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -81,7 +82,7 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
     }
 
     if (anyApplied) {
-        REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", a_actor->GetName(), a_actor->GetFormID());
+        REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", Support::SafeName(a_actor), a_actor->GetFormID());
         SKEEIntegration::GetSingleton().UpdateModelWeight(a_actor);
     }
 }
@@ -101,7 +102,7 @@ void MorphRuleEngine::OnActorLoaded(RE::Actor* a_actor) {
             REX::DEBUG("  morph '{}' triggeredBy={:08X} worn='{}'({:08X})",
                        morphName,
                        std::to_underlying(morph.triggeredBy),
-                       armor->GetName(),
+                       Support::SafeName(armor),
                        armor->GetFormID());
         } else {
             REX::DEBUG("  morph '{}' triggeredBy={:08X} worn=<none>", morphName, std::to_underlying(morph.triggeredBy));
@@ -113,7 +114,7 @@ void MorphRuleEngine::OnActorLoaded(RE::Actor* a_actor) {
     }
 
     if (anyApplied) {
-        REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", a_actor->GetName(), a_actor->GetFormID());
+        REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", Support::SafeName(a_actor), a_actor->GetFormID());
         SKEEIntegration::GetSingleton().UpdateModelWeight(a_actor);
     }
 }

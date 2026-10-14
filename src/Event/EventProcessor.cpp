@@ -5,6 +5,7 @@
 #include "Event/EventProcessor.h"
 
 #include "MorphRuleEngine/MorphRuleEngine.h"
+#include "Support/FormName.h"
 
 #include <cstdint>
 #include <string_view>
@@ -38,9 +39,9 @@ auto EventProcessor::ProcessEvent(const RE::TESEquipEvent* a_event, RE::BSTEvent
         file != nullptr ? std::string_view{file->GetFilename()} : std::string_view{"<null>"};
 
     REX::DEBUG("[Equip] actor='{}'({:08X}) armor='{}'({:08X}) equipped={}",
-               actor->GetName(),
+               Support::SafeName(actor),
                actor->GetFormID(),
-               armor->GetName(),
+               Support::SafeName(armor),
                armor->GetFormID(),
                a_event->equipped);
     REX::DEBUG("        file='{}' local={:08X} slotMask={:08X}",
