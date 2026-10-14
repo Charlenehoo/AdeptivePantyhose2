@@ -1,7 +1,7 @@
 # AdeptivePantyhose 架构
 
 **版本**：v2.0.0
-**最后更新**：2026-10-13
+**最后更新**：2026-10-14
 
 本文档描述 AdeptivePantyhose 的内部架构与设计决策。目标读者为维护者与想要扩展规则配置的高级用户。
 
@@ -23,38 +23,43 @@ AdeptivePantyhose 是一个 SKSE 插件，根据角色当前穿戴的装备动�
 ## 2. 分层架构
 
 ```
+
 ┌─────────────────────────────────────────────────────────┐
-│  assets/SKSE/AdeptivePantyhose/MorphRules.json          │  数据
+│ assets/SKSE/AdeptivePantyhose/MorphRules.json │ 数据
 └────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
+│
+▼
 ┌─────────────────────────────────────────────────────────┐
-│  Config 层（语法层）                                     │  纯 C++23 + nlohmann::json
-│    - Types.h          ParsedConfig 等纯数据类型          │  零游戏依赖
-│    - SyntaxParser     解析 JSON 结构，验证引用完整性     │
+│ Config 层（语法层） │ 纯 C++23 + nlohmann::json
+│ - Types.h ParsedConfig 等纯数据类型 │ 零游戏依赖
+│ - SyntaxParser 解析 JSON 结构，验证引用完整性 │
 └────────────────────────┬────────────────────────────────┘
-                         │ ParsedConfig
-                         ▼
+│ ParsedConfig
+▼
 ┌─────────────────────────────────────────────────────────┐
-│  MorphRuleEngine 层（领域层）                            │  引入游戏概念
-│    - Predicate            抽象基类 + 内置组合子          │  RE::Actor / RE::TESObjectARMO
-│    - Leaves/              KeywordPredicate 等叶子工厂    │  FormID / Keyword
-│    - PredicateCompiler    编译 + 环检测                  │
-│    - MorphRuleEngine      求值 + apply                   │
+│ MorphRuleEngine 层（领域层） │ 引入游戏概念
+│ - Predicate 抽象基类 + 内置组合子 │ RE::Actor / RE::TESObjectARMO
+│ - Leaves/ KeywordPredicate 等叶子工厂 │ FormID / Keyword
+│ - PredicateCompiler 编译 + 环检测 │
+│ - MorphRuleEngine 求值 + apply │
 └────────────────────────┬────────────────────────────────┘
-                         │ CompiledRules
-                         ▼
+│ CompiledRules
+▼
 ┌─────────────────────────────────────────────────────────┐
-│  Event 层（触发）                                        │
-│    - EventProcessor      监听 TESEquipEvent，喂给引擎    │
-│    - main.cpp 消息        kPostLoadGame 对玩家兜底一次   │
+│ Event 层（触发） │
+│ - EventProcessor 监听 TESEquipEvent，喂给引擎 │
+│ - main.cpp 消息 kPostLoadGame 对玩家兜底一次 │
 └────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
+│
+▼
 ┌─────────────────────────────────────────────────────────┐
-│  Integration 层（外部接口）                              │
-│    - SKEEIntegration     请求 SKEE BodyMorph 接口        │
+│ Integration 层（外部接口） │
+│ - SKEEIntegration 请求 SKEE BodyMorph 接口 │
 └─────────────────────────────────────────────────────────┘
+
+横切：src/Support/FormName.h 提供 SafeName()，供各层日志安全打印
+匿名的 RE::TESForm（GetName() 可能返回 nullptr）。
+
 ```
 
 **层次约束**：
@@ -172,6 +177,8 @@ main.cpp: LoadMorphRules()
     │   成功 → ParsedConfig
     │   失败 → ParseError{ location, message } → REX::FAIL
     │
+    ├──► DumpParsedConfig(ParsedConfig)        [详细日志版]
+    │
     └──► PredicateCompiler::Compile(ParsedConfig)
             │
             ├── 注册叶子工厂（main.cpp 提供）
@@ -214,8 +221,9 @@ MorphRuleEngine::OnEquipEvent(actor, armor, equipped)
     │     ├── 若 armor 不占据 morph.TriggeredBy → 跳过
     │     └── 若占槽：
     │           ├── 遍历 rules
-    │           ├── matched = equipped && rule.when->Evaluate(ctx)
-    │           └── 首个 matched → ApplyMorph(morphName, rule.value)
+    │           ├── matched = equipped ? rule.when->Evaluate(ctx)
+    │           │                          : rule.when->IsAlwaysTrue()
+    │           └── 首个 matched → SetAbsolute(morphName, rule.value)
     │
     └── 若有任何 morph 被 apply → UpdateModelWeight(actor)
 ```
@@ -253,13 +261,14 @@ MorphRuleEngine::OnActorLoaded(RE::PlayerCharacter::GetSingleton())
 **规则求值前先看 `equipped`**：
 
 ```cpp
-matched = a_equipped && rule.when->Evaluate(ctx)
+matched = a_equipped ? rule.when->Evaluate(ctx)      // 正常求值谓词
+                     : rule.when->IsAlwaysTrue();    // 仅恒真谓词能命中
 ```
 
-- `equipped == true`：正常求值谓词
-- `equipped == false`：谓词一律视为不命中，直接走 `Default` 分支
+- `equipped == true`：正常求值谓词，`HighHeel` 等有意义的条件都可能命中。
+- `equipped == false`：谓词一律不求值。只有 `IsAlwaysTrue()` 为 true 的规则可能命中——这正是 `Default` 分支。有意义的谓词（`HighHeel` 之类）此时一律视为不命中。
 
-**这是本插件的核心假设**：脱下鞋子 = 裸足。因此卸下高跟和卸下平底鞋的结果相同——都落到 `Default` 的 `Value: 1.0`，即 `SetMorph("NoHeel", 1.0)`。
+**这是本插件的核心假设**：脱下鞋子 = 裸足。因此卸下高跟和卸下平底鞋的结果相同——都落到 `Default` 的 `Value: 1.0`，即 `SetAbsolute("NoHeel", 1.0)`。
 
 **为什么硬编码而不做成 JSON 可配置**：这是插件对游戏玩法的基本假设，不是每个用户需要表达的自由度。如果某个用户想要"卸鞋后 morph 不变"，他应该改写 JSON，而不是要求插件提供一个"忽略 unequip"的开关。
 
@@ -280,13 +289,16 @@ if (!a_armor->HasPartOf(morph.triggeredBy)) {
 `Rules` 是有序列表，**第一个命中的规则生效，其余不求值**：
 
 ```cpp
-for (const auto& rule : a_morph.rules) {
-    if (matched) {
-        ApplyMorph(a_actor, a_morphName, rule.value);
-        return;   // 短路
-    }
+const auto iter = std::ranges::find_if(morph.rules, [&](const CompiledMorphEntry& a_rule) {
+    return a_equipped ? a_rule.when->Evaluate(ctx) : a_rule.when->IsAlwaysTrue();
+});
+if (iter == morph.rules.end()) {
+    return false;   // 全部不命中，不触碰该 morph
 }
+SetAbsolute(a_actor, morphName, iter->value);
 ```
+
+用 `find_if` 而非 `any_of`：谓词求值本身无副作用，但命中后需要 `SetAbsolute` 写入——这是"找到后动手"的语义，不是"判断存在性"。把副作用塞进 `any_of` 的谓词里违反纯函数契约。
 
 **全部不命中时**：不触碰该 morph。调用方通过是否触发过 apply 决定是否调 `UpdateModelWeight`。
 
@@ -295,10 +307,10 @@ for (const auto& rule : a_morph.rules) {
 SKEE 的 `SetMorph(actor, name, key, value)` 语义是**相对变化量**，不是绝对赋值。要得到绝对值 `v`，必须 `ClearMorph` 之后再 `SetMorph`：
 
 ```cpp
-// ApplyMorph 内部
-bodyMorph->ClearMorph(actor, name, kMorphNamespace);
-if (value != 0.0F) {
-    bodyMorph->SetMorph(actor, name, kMorphNamespace, value);
+// SKEEIntegration::SetAbsolute 内部
+m_bodyMorph->ClearMorph(a_actor, morphNameCStr, kNamespaceKey);
+if (a_value != 0.0F) {
+    m_bodyMorph->SetMorph(a_actor, morphNameCStr, kNamespaceKey, a_value);
 }
 ```
 
@@ -308,9 +320,9 @@ if (value != 0.0F) {
 
 ### 5.5 SKEE 命名空间 key
 
-所有 morph 操作使用统一 key `AdeptivePantyhoseMorphKey`。这个 key 是插件在 SKEE 系统中的命名空间，隔离本插件设置的 morph，避免与其他插件冲突。
+所有 morph 操作使用统一 key `AdeptivePantyhoseMorphKey`（常量名 `kNamespaceKey`）。这个 key 是插件在 SKEE 系统中的命名空间，隔离本插件设置的 morph，避免与其他插件冲突。
 
-**旧 key `CH_AdeptivePantyhoseMorphKey` 的清理**：每次 `ApplyMorph` 时顺便 `ClearMorph` 旧 key，兼容从旧版本升级的存档。这是一次性兼容代码，等足够长时间后可以移除。
+**旧 key `CH_AdeptivePantyhoseMorphKey` 的清理**：每次 `SetAbsolute` 时顺便 `ClearMorph` 旧 key（常量名 `kLegacyNamespaceKey`），兼容从旧版本升级的存档。这是一次性兼容代码，等足够长时间后可以移除。
 
 ---
 
@@ -358,6 +370,8 @@ struct ParsedConfig {
 - `TriggeredBy` 字符串经 `ParseBipedSlot` 手写映射表转为
   `RE::BGSBipedObjectForm::BipedObjectSlot`。位标志枚举不适合
   magic_enum，且映射表与 schema 的 BipedSlotName enum 一一对应。
+  映射表用 `constexpr auto kSlotMap = std::to_array<std::pair<std::string_view, Slot>>({...})` 而非
+  `static const unordered_map`——后者无法 `constexpr`，只能退化为运行期常量，与项目 `kCamelCase` 约定冲突。32 项线性扫描，仅启动期调用一次。
 
 **编译产物**：
 
@@ -549,6 +563,8 @@ src/
 ├── Integration/
 │   └── SKEE/
 │       └── SKEEIntegration.{h,cpp}
+├── Support/
+│   └── FormName.h                SafeName() 日志兜底
 ├── main.cpp                      装配、生命周期、kPostLoadGame 兜底
 └── pch.h
 
@@ -577,20 +593,52 @@ assets/SKSE/AdeptivePantyhose/
 
 **`REX::FAIL` 与 `REX::CRITICAL` 的区别**：`CRITICAL` 只写日志；`FAIL` 写日志后调用 `SKSE::stl::report_and_fail`——弹出错误框并终止游戏进程。插件初始化阶段的不可恢复错误应使用 `REX::FAIL`；运行时的严重异常（不影响插件继续运行）用 `CRITICAL`。
 
+**DEBUG 级在正式版由编译期剔除**：`commonlib-shared` 的 release 配置默认把 `SPDLOG_ACTIVE_LEVEL` 设为 `SPDLOG_LEVEL_INFO`，所有 `REX::DEBUG` 调用在编译期整个消失——参数不求值，字符串不进二进制。详细日志版通过构建参数把 `SPDLOG_ACTIVE_LEVEL` 提到 `SPDLOG_LEVEL_TRACE`，同一份源码原样编出全量日志。**不需要运行时开关，也不需要 `#ifdef`**。
+
 ### 10.2 日志文件位置
 
 ```
 Documents/My Games/Skyrim Special Edition/SKSE/AdeptivePantyhose.log
 ```
 
-`CMakeLists.txt` 会在项目根目录硬链接此文件，便于调试。
+`CMakeLists.txt` 会在 configure 阶段硬链接此文件到项目根目录，便于调试。
 
 ### 10.3 关键日志点
 
-- **加载期成功**：`MorphRules loaded: M morph(s)`
-- **加载期失败**：`REX::FAIL("MorphRules.json syntax error at {}: {}", location, message)`
-- **编译失败**：`REX::FAIL("MorphRules.json compile error at {}: {}", location, message)`
-- **SKEE 未安装**：`REX::WARN("SKEEIntegration: SKEE not available, integration disabled")`
+**启动期（INFO，用户贴日志时自动带上）**：
+
+- `Plugin version: X.Y.Z`
+- `SKSE version: X.Y.Z`
+- `Game version: X.Y.Z`
+- `SKSEPlugin_Load: loaded`
+- `SKEEIntegration: initialized (bodyMorphVersion=N)`
+- `MorphRules loaded: N morph(s)`
+- `RegisterEvents: TESEquipEvent sink registered`
+- `[PostLoad] running rules for player '...'` —— 每次读档兜底
+
+**启动期（DEBUG，详细版）**：
+
+- `OnMessage: PostPostLoad / DataLoaded / PostLoadGame` —— 生命周期钩子
+- `[Rules] parsed: N predicate(s), M morph(s)` —— 启动期 dump 头部
+- `  predicate '...': leaf Type(payload)` / `... AnyOf[...]` —— 每个谓词的内容
+- `  morph '...' triggeredBy='...' rules=N` + 每条 rule 的 value / when
+- 失败时：`MorphRules.json syntax error at {path}: {msg}` / `... compile error ...`，同时 `REX::FAIL` 弹窗
+
+**运行期（DEBUG，详细版）**：
+
+- `[Equip] actor='...' armor='...' equipped=N` + `file='...' local=... slotMask=...` —— 事件入口
+- `  morph '...' triggeredBy=... -> slot-match / skip` —— slot 过滤结果
+- `      rule[i] value=N equipped=B -> MATCH` 或 `      no rule matched ...` —— 谓词求值结果
+- `    [SKEE] SetAbsolute actor=... morph='...' value=N` 或 `interface null, skip` —— 写入路径
+- `    [SKEE] UpdateModelWeight actor=...` 或 `interface null, skip`
+- `  [Update] UpdateModelWeight actor='...'` —— 至少一条 morph 命中
+
+**WARN / 失败**：
+
+- `SKEEIntegration: SKEE not available, integration disabled`
+- `SKEEIntegration: BodyMorph version too old (need >= N, got M)`
+- `RegisterEvents: ScriptEventSourceHolder null`
+- `HandlePostLoadGame: PlayerCharacter null`
 
 ---
 
@@ -600,3 +648,4 @@ Documents/My Games/Skyrim Special Edition/SKSE/AdeptivePantyhose.log
 2. **SKEE 接口版本依赖**：BodyMorph 接口要求 >= v4。SKEE 未安装或版本过旧时整个 morph 功能静默失效。
 3. **配置文件的编辑体验**：依赖用户在 MO2 目录中手动编辑 JSON。无 GUI 配置界面。
 4. **NPC 加载依赖引擎的 equip 事件**：如果某 mod 通过脚本绕过装备系统直接修改 NPC 装备，且引擎不为其触发 `TESEquipEvent`，则该 NPC 的 morph 不会更新。当前无证据表明存在这种场景，但若遇到，需要重新引入 `TESObjectLoadedEvent` 作为补充触发源。
+5. **仅支持 SKSE 2.3.0+（游戏 1.6.1130+）**：`PluginVersionData` 里声明了 `MinimumRequiredXSEVersion(REL::Version{2, 3, 0})`。1.5.97 用户请使用旧版本插件。
