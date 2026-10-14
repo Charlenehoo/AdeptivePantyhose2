@@ -45,11 +45,14 @@ public:
     // value == 0.0 时只 ClearMorph，跳过 SetMorph。
     //
     // 同时清理旧版本的 legacy key，兼容从 CH_ 前缀版本升级的存档。
-    void SetAbsolute(RE::Actor* a_actor, std::string_view a_morphName, float a_value);
+    //
+    // 形参用引用而非指针：契约要求调用方传入真实 actor，类型系统直接
+    // 表达这一点。调用方在事件入口已做过 null 过滤。
+    void SetAbsolute(RE::Actor& a_actor, std::string_view a_morphName, float a_value);
 
     // 让引擎重新计算该 actor 的模型权重。
     // 建议在一次事件里对多个 morph 做完 SetAbsolute 之后调用一次。
-    void UpdateModelWeight(RE::Actor* a_actor);
+    void UpdateModelWeight(RE::Actor& a_actor);
 
 private:
     SKEEIntegration() = default;

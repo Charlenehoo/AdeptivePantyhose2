@@ -45,7 +45,7 @@ auto EvaluateAndApply(RE::Actor* a_actor,
     const auto index = static_cast<std::size_t>(std::distance(a_morph.rules.begin(), iter));
     REX::DEBUG("      rule[{}] value={} equipped={} -> MATCH", index, iter->value, a_equipped);
 
-    SKEEIntegration::GetSingleton().SetAbsolute(a_actor, a_morphName, iter->value);
+    SKEEIntegration::GetSingleton().SetAbsolute(*a_actor, a_morphName, iter->value);
     return true;
 }
 
@@ -83,7 +83,7 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
 
     if (anyApplied) {
         REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", Support::SafeName(a_actor), a_actor->GetFormID());
-        SKEEIntegration::GetSingleton().UpdateModelWeight(a_actor);
+        SKEEIntegration::GetSingleton().UpdateModelWeight(*a_actor);
     }
 }
 
@@ -115,7 +115,7 @@ void MorphRuleEngine::OnActorLoaded(RE::Actor* a_actor) {
 
     if (anyApplied) {
         REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", Support::SafeName(a_actor), a_actor->GetFormID());
-        SKEEIntegration::GetSingleton().UpdateModelWeight(a_actor);
+        SKEEIntegration::GetSingleton().UpdateModelWeight(*a_actor);
     }
 }
 

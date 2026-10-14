@@ -80,7 +80,7 @@ void SKEEIntegration::Initialize() {
 
 // ---------- 语义化操作 ----------
 
-void SKEEIntegration::SetAbsolute(RE::Actor* a_actor, std::string_view a_morphName, float a_value) {
+void SKEEIntegration::SetAbsolute(RE::Actor& a_actor, std::string_view a_morphName, float a_value) {
     if (m_bodyMorph == nullptr) {
         // 用户"日志里规则命中了但没效果"的常见根因。SKEE 未装或版本
         // 过旧时 Initialize 已打过 WARN，这里再标一次是让日志顺序上
@@ -89,28 +89,28 @@ void SKEEIntegration::SetAbsolute(RE::Actor* a_actor, std::string_view a_morphNa
         return;
     }
 
-    REX::DEBUG("    [SKEE] SetAbsolute actor={:08X} morph='{}' value={}", a_actor->GetFormID(), a_morphName, a_value);
+    REX::DEBUG("    [SKEE] SetAbsolute actor={:08X} morph='{}' value={}", a_actor.GetFormID(), a_morphName, a_value);
 
     // std::string_view 不保证 null 终止，转 string 之后取 c_str()。
     const std::string morphName{a_morphName};
     const char* morphNameCStr = morphName.c_str();
 
     // 旧版遗留 key 清理。幂等——该 key 下没有记录时 ClearMorph 是空调用。
-    m_bodyMorph->ClearMorph(a_actor, morphNameCStr, kLegacyNamespaceKey);
+    m_bodyMorph->ClearMorph(&a_actor, morphNameCStr, kLegacyNamespaceKey);
 
     // SKEE 的 SetMorph 是相对变化量，要得到绝对值 v 必须先 Clear 再 Set。
-    m_bodyMorph->ClearMorph(a_actor, morphNameCStr, kNamespaceKey);
+    m_bodyMorph->ClearMorph(&a_actor, morphNameCStr, kNamespaceKey);
     if (a_value != 0.0F) {
-        m_bodyMorph->SetMorph(a_actor, morphNameCStr, kNamespaceKey, a_value);
+        m_bodyMorph->SetMorph(&a_actor, morphNameCStr, kNamespaceKey, a_value);
     }
 }
 
-void SKEEIntegration::UpdateModelWeight(RE::Actor* a_actor) {
+void SKEEIntegration::UpdateModelWeight(RE::Actor& a_actor) {
     if (m_bodyMorph == nullptr) {
-        REX::DEBUG("    [SKEE] UpdateModelWeight: interface null, skip actor={:08X}", a_actor->GetFormID());
+        REX::DEBUG("    [SKEE] UpdateModelWeight: interface null, skip actor={:08X}", a_actor.GetFormID());
         return;
     }
 
-    REX::DEBUG("    [SKEE] UpdateModelWeight actor={:08X}", a_actor->GetFormID());
-    m_bodyMorph->UpdateModelWeight(a_actor);
+    REX::DEBUG("    [SKEE] UpdateModelWeight actor={:08X}", a_actor.GetFormID());
+    m_bodyMorph->UpdateModelWeight(&a_actor);
 }
