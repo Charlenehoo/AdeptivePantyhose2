@@ -1,7 +1,7 @@
 # 使用 3.26：copy_directory_if_different 需要 3.26。
 # 不升到 3.31：实测构建步骤会从 393 增至 783，原因待查。
 cmake_minimum_required(VERSION 3.26)
-project(AdeptivePantyhose VERSION 3.0.1 LANGUAGES CXX)
+project(AdeptivePantyhose VERSION 3.0.2 LANGUAGES CXX)
 set(PROJECT_AUTHOR "Charlene Hoo")
 set(PROJECT_AUTHOR_EMAIL "CharleneHoo@hotmail.com")
 
