@@ -52,6 +52,7 @@ if(MSVC)
         /utf-8
         /Zc:__cplusplus
         /permissive-
+        /EHsc
     )
 endif()
 
