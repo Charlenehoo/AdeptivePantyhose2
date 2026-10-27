@@ -175,7 +175,20 @@ void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
                 auto* addon = data.addon;
 
                 const bool isAttaching =
-                    (armor == a_attachingArmor && addon == a_attachingAddon && isFirstPerson == a_isFirstPerson);
+                    (armor != nullptr && a_attachingArmor != nullptr &&
+                     armor->GetFormID() == a_attachingArmor->GetFormID() && addon != nullptr &&
+                     a_attachingAddon != nullptr && addon->GetFormID() == a_attachingAddon->GetFormID() &&
+                     isFirstPerson == a_isFirstPerson);
+
+                REX::DEBUG("[ApplyOther] cmp armor={:08X}/{:08X} addon={:08X}/{:08X} isFP={}/{} isAttaching={}",
+                           armor ? armor->GetFormID() : 0,
+                           a_attachingArmor ? a_attachingArmor->GetFormID() : 0,
+                           addon ? addon->GetFormID() : 0,
+                           a_attachingAddon ? a_attachingAddon->GetFormID() : 0,
+                           isFirstPerson,
+                           a_isFirstPerson,
+                           isAttaching);
+
                 if (isAttaching) {
                     REX::DEBUG("[ApplyOther] SKIP current mesh refr={:08X} mesh='{}' isFP={}",
                                a_actor.GetFormID(),
@@ -194,12 +207,11 @@ void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
                            hasShapeData);
 
                 if (!hasShapeData) {
-                    REX::WARN("[ApplyOther] mesh='{}' has no SHAPEDATA, fallback to isAttaching=true",
-                              data.partClone->name.c_str());
-                    m_bodyMorph->ApplyVertexDiff(&a_actor, data.partClone.get(), true);
-                } else {
-                    m_bodyMorph->ApplyVertexDiff(&a_actor, data.partClone.get(), false);
+                    REX::DEBUG("[ApplyOther] mesh='{}' has no SHAPEDATA, skip (will be handled by its own OnAttach)",
+                               data.partClone->name.c_str());
+                    continue;
                 }
+                m_bodyMorph->ApplyVertexDiff(&a_actor, data.partClone.get(), false);
             }
         };
 
