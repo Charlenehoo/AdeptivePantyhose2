@@ -63,8 +63,6 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
         return;
     }
 
-    bool anyApplied = false;
-
     for (const auto& [morphName, morph] : m_rules.morphs) {
         const bool slotMatch = a_armor != nullptr && a_armor->HasPartOf(morph.triggeredBy);
 
@@ -96,15 +94,13 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
                    std::to_underlying(morph.triggeredBy),
                    slotMatch ? "slot-match" : "default-init");
 
-        if (EvaluateAndApply(a_actor, morphName, morph, wornArmor, equipped)) {
-            anyApplied = true;
-        }
+        // 不再收集 anyApplied，也不再调 UpdateModelWeight
+        (void)EvaluateAndApply(a_actor, morphName, morph, wornArmor, equipped);
     }
 
-    if (anyApplied) {
-        REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", Support::SafeName(a_actor), a_actor->GetFormID());
-        SKEEIntegration::GetSingleton().UpdateModelWeight(*a_actor);
-    }
+    // mesh 更新由 AttachListener::OnAttach 驱动：
+    // - 当前 mesh：SKEE BodyMorphInterface::OnAttach（isAttaching=true）
+    // - 其他已存在 mesh：AttachListener::OnAttach 中的 ApplyVertexDiff(false)
 }
 
 void MorphRuleEngine::OnActorLoaded(RE::Actor* a_actor) {
