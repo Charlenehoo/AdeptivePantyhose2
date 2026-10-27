@@ -180,15 +180,6 @@ void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
                      a_attachingAddon != nullptr && addon->GetFormID() == a_attachingAddon->GetFormID() &&
                      isFirstPerson == a_isFirstPerson);
 
-                REX::DEBUG("[ApplyOther] cmp armor={:08X}/{:08X} addon={:08X}/{:08X} isFP={}/{} isAttaching={}",
-                           armor ? armor->GetFormID() : 0,
-                           a_attachingArmor ? a_attachingArmor->GetFormID() : 0,
-                           addon ? addon->GetFormID() : 0,
-                           a_attachingAddon ? a_attachingAddon->GetFormID() : 0,
-                           isFirstPerson,
-                           a_isFirstPerson,
-                           isAttaching);
-
                 if (isAttaching) {
                     REX::DEBUG("[ApplyOther] SKIP current mesh refr={:08X} mesh='{}' isFP={}",
                                a_actor.GetFormID(),
