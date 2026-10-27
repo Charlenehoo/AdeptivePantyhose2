@@ -4,6 +4,8 @@
 
 #include "Integration/SKEE/SKEEIntegration.h"
 
+#include "Integration/SKEE/AttachListener.h"
+
 #include <IPluginInterface.h>
 #include <cstdint>
 #include <string>
@@ -76,6 +78,18 @@ void SKEEIntegration::Initialize() {
 
     m_bodyMorph = bodyMorph;
     REX::INFO("SKEEIntegration: initialized (bodyMorphVersion={})", version);
+
+    // NOLINTBEGIN(cppcoreguidelines-pro-type-static-cast-downcast)
+    auto* updateManager =
+        static_cast<IActorUpdateManager*>(exchange.interfaceMap->QueryInterface("ActorUpdateManager"));
+    // NOLINTEND(cppcoreguidelines-pro-type-static-cast-downcast)
+    if (updateManager != nullptr) {
+        m_updateManager = updateManager;
+        updateManager->AddInterface(&AttachListener::GetSingleton());
+        REX::INFO("SKEEIntegration: ActorUpdateManager found, AttachListener installed");
+    } else {
+        REX::WARN("SKEEIntegration: ActorUpdateManager not found, AttachListener not installed");
+    }
 }
 
 // ---------- 语义化操作 ----------
