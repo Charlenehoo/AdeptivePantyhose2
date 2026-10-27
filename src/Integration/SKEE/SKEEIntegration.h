@@ -9,6 +9,7 @@ class Actor;
 
 // SKEE IPluginInterface.h 里的类型位于全局命名空间。
 class IBodyMorphInterface;
+class IActorUpdateManager;
 
 // SKEE BodyMorph 接口的封装。
 //
@@ -58,4 +59,5 @@ private:
     SKEEIntegration() = default;
 
     IBodyMorphInterface* m_bodyMorph = nullptr;
+    IActorUpdateManager* m_updateManager = nullptr;
 };
