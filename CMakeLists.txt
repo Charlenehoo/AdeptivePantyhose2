@@ -32,6 +32,7 @@ add_library(
     src/main.cpp
     src/Config/SyntaxParser.cpp
     src/Event/EventProcessor.cpp
+    src/Integration/SKEE/AttachListener.cpp
     src/Integration/SKEE/SKEEIntegration.cpp
     src/MorphRuleEngine/PredicateCompiler.cpp
     src/MorphRuleEngine/MorphRuleEngine.cpp
