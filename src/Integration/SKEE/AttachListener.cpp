@@ -45,4 +45,9 @@ void AttachListener::OnAttach(RE::TESObjectREFR* a_refr,
                   a_object->name.c_str());
         SKEEIntegration::GetSingleton().ApplyVertexDiffCurrentMesh(*a_refr, *a_object);
     }
+
+    auto* actor = a_refr->As<RE::Actor>();
+    if (actor != nullptr) {
+        SKEEIntegration::GetSingleton().ApplyVertexDiffToWornMeshes(*actor, a_armor, a_addon, a_isFirstPerson);
+    }
 }

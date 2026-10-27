@@ -63,6 +63,13 @@ public:
     // 用于 SKEE 自身 OnAttach 未初始化当前 mesh 时的兜底。
     void ApplyVertexDiffCurrentMesh(RE::TESObjectREFR& a_refr, RE::NiAVObject& a_object);
 
+    // 对 actor 当前所有已 attach 的 armor addon mesh 以 isAttaching=false 调用 ApplyVertexDiff。
+    // a_attachingArmor / a_attachingAddon / a_isFirstPerson 用于跳过当前 mesh 并输出日志。
+    void ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
+                                     RE::TESObjectARMO* a_attachingArmor,
+                                     RE::TESObjectARMA* a_attachingAddon,
+                                     bool a_isFirstPerson);
+
 private:
     SKEEIntegration() = default;
 

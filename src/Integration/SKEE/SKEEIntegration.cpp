@@ -136,3 +136,10 @@ void SKEEIntegration::ApplyVertexDiffCurrentMesh(RE::TESObjectREFR& a_refr, RE::
     REX::DEBUG("[ApplyCurrent] refr={:08X} mesh='{}'", a_refr.GetFormID(), a_object.name.c_str());
     m_bodyMorph->ApplyVertexDiff(&a_refr, &a_object, true);
 }
+
+void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
+                                                  RE::TESObjectARMO* /*a_attachingArmor*/,
+                                                  RE::TESObjectARMA* /*a_attachingAddon*/,
+                                                  bool /*a_isFirstPerson*/) {
+    REX::DEBUG("[ApplyOther] stub called actor={:08X}", a_actor.GetFormID());
+}
