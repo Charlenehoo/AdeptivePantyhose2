@@ -5,7 +5,11 @@
 
 namespace RE {
 class Actor;
-}
+class NiAVObject;
+class TESObjectARMO;
+class TESObjectARMA;
+class TESObjectREFR;
+}  // namespace RE
 
 // SKEE IPluginInterface.h 里的类型位于全局命名空间。
 class IBodyMorphInterface;
@@ -54,6 +58,10 @@ public:
     // 让引擎重新计算该 actor 的模型权重。
     // 建议在一次事件里对多个 morph 做完 SetAbsolute 之后调用一次。
     void UpdateModelWeight(RE::Actor& a_actor);
+
+    // 仅对当前正在 attach 的 mesh 以 isAttaching=true 调用 ApplyVertexDiff。
+    // 用于 SKEE 自身 OnAttach 未初始化当前 mesh 时的兜底。
+    void ApplyVertexDiffCurrentMesh(RE::TESObjectREFR& a_refr, RE::NiAVObject& a_object);
 
 private:
     SKEEIntegration() = default;

@@ -128,3 +128,11 @@ void SKEEIntegration::UpdateModelWeight(RE::Actor& a_actor) {
     REX::DEBUG("    [SKEE] UpdateModelWeight actor={:08X}", a_actor.GetFormID());
     m_bodyMorph->UpdateModelWeight(&a_actor);
 }
+
+void SKEEIntegration::ApplyVertexDiffCurrentMesh(RE::TESObjectREFR& a_refr, RE::NiAVObject& a_object) {
+    if (m_bodyMorph == nullptr) {
+        return;
+    }
+    REX::DEBUG("[ApplyCurrent] refr={:08X} mesh='{}'", a_refr.GetFormID(), a_object.name.c_str());
+    m_bodyMorph->ApplyVertexDiff(&a_refr, &a_object, true);
+}

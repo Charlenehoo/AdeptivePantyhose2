@@ -3,6 +3,8 @@
 
 #include "Integration/SKEE/AttachListener.h"
 
+#include "Integration/SKEE/SKEEIntegration.h"
+
 namespace {
 
 [[nodiscard]] auto HasShapeData(RE::NiAVObject* a_object) -> bool {
@@ -37,4 +39,10 @@ void AttachListener::OnAttach(RE::TESObjectREFR* a_refr,
                a_isFirstPerson,
                a_object->name.c_str(),
                HasShapeData(a_object));
+
+    if (!HasShapeData(a_object)) {
+        REX::WARN("[Attach] current mesh '{}' has no SHAPEDATA, initializing with isAttaching=true",
+                  a_object->name.c_str());
+        SKEEIntegration::GetSingleton().ApplyVertexDiffCurrentMesh(*a_refr, *a_object);
+    }
 }
