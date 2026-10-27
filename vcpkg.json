@@ -1,6 +1,6 @@
 {
   "name": "adeptive-pantyhose",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "dependencies": [
     "abseil",
     "commonlib-shared",
