@@ -65,37 +65,15 @@ auto MorphRuleEngine::GetSingleton() -> MorphRuleEngine& {
 
 void MorphRuleEngine::SetRules(CompiledRules a_rules) { m_rules = std::move(a_rules); }
 
-void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armor, bool a_equipped) {
+auto MorphRuleEngine::EvaluateRules(RE::Actor* a_actor, RE::TESObjectARMO* a_armor, bool a_equipped) -> bool {
     if (a_actor == nullptr) {
-        return;
-    }
-
-    // 收集旧装备（TESEquipEvent 期间 GetWornArmor 返回旧值）
-    std::unordered_set<RE::FormID> oldArmors;
-    for (std::uint32_t slot = 0; slot < kBipedSlotBitCount; ++slot) {
-        const auto slotBit = static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(1U << slot);
-        if (auto* worn = a_actor->GetWornArmor(slotBit); worn != nullptr) {
-            oldArmors.insert(worn->GetFormID());
-        }
-    }
-
-    // 卸下事件：GetWornArmor 仍返回即将移除的 armor，显式排除
-    if (a_armor != nullptr) {
-        oldArmors.erase(a_armor->GetFormID());
+        return false;
     }
 
     bool anyApplied = false;
-
     for (const auto& [morphName, morph] : m_rules.morphs) {
         const bool slotMatch = a_armor != nullptr && a_armor->HasPartOf(morph.triggeredBy);
 
-        // TESEquipEvent 派发时 GetWornArmor 仍返回旧值，不能直接拿它当
-        // 求值输入。必须用事件自身的信息合成"事件后该槽的真实状态"：
-        //
-        // - 事件 armor 占 triggeredBy 槽：该槽状态被本事件改变，
-        //   新状态 = a_equipped ? a_armor : nullptr
-        // - 事件 armor 不占该槽：该槽未被本事件触及，GetWornArmor 的
-        //   旧值就是当前真实值
         RE::TESObjectARMO* wornArmor = nullptr;
         if (slotMatch) {
             wornArmor = a_equipped ? a_armor : nullptr;
@@ -104,10 +82,6 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
         }
         const bool equipped = wornArmor != nullptr;
 
-        // 事件与 this morph 是否相关：
-        // - 事件 armor 占 triggeredBy 槽 → 相关
-        // - triggeredBy 槽当前为空 → 相关（初始化 Default，首次穿裤袜的关键）
-        // - 其他 → 无关，跳过
         if (!slotMatch && equipped) {
             continue;
         }
@@ -121,8 +95,11 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
             anyApplied = true;
         }
     }
+    return anyApplied;
+}
 
-    if (anyApplied) {
+void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armor, bool a_equipped) {
+    if (EvaluateRules(a_actor, a_armor, a_equipped)) {
         SKEEIntegration::GetSingleton().ApplyVertexDiffToWornMeshes(*a_actor);
     }
 }

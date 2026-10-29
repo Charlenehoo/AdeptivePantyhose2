@@ -64,6 +64,15 @@ public:
     // attach 的装备，避免为未就绪 mesh 创建错误 SHAPEDATA。
     void ApplyVertexDiffToWornMeshes(RE::Actor& a_actor);
 
+    // 对单个 mesh 调用 ApplyVertexDiff。供 AttachListener 使用。
+    // a_isAttaching 直接透传给 SKEE：true 不重置顶点，false 先用 SHAPEDATA
+    // 重置到 base 再应用。对已就绪 mesh 调 false 是幂等的。
+    void ApplyVertexDiff(RE::TESObjectREFR& a_refr, RE::NiAVObject& a_object, bool a_isAttaching);
+
+    // 递归检查子树里是否有 SHAPEDATA。
+    // 供 AttachListener 判断"当前 mesh 是否已被 SKEE 的 OnAttach 初始化"。
+    [[nodiscard]] static auto HasShapeDataRecursive(RE::NiAVObject* a_object) -> bool;
+
 private:
     SKEEIntegration() = default;
 

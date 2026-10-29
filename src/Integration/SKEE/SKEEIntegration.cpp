@@ -36,27 +36,6 @@ constexpr const char* kNamespaceKey = "AdeptivePantyhoseMorphKey";
 // 可以移除。
 constexpr const char* kLegacyNamespaceKey = "CH_AdeptivePantyhoseMorphKey";
 
-[[nodiscard]] auto HasShapeDataRecursive(RE::NiAVObject* a_object) -> bool {
-    if (a_object == nullptr) {
-        return false;
-    }
-    if (a_object->GetExtraData("SHAPEDATA") != nullptr) {
-        return true;
-    }
-    // skyrim_cast 走引擎 RTTI 的继承链，BSFadeNode / BSFaceGenNiNode 等
-    // NiNode 子类都会被识别。直接比较 GetRTTI() == NiNode::Ni_RTTI
-    // 只匹配精确类型，漏掉所有子类。
-    auto* node = skyrim_cast<RE::NiNode*>(a_object);
-    if (node != nullptr) {
-        for (auto& child : node->children) {
-            if (child && HasShapeDataRecursive(child.get())) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 }  // namespace
 
 auto SKEEIntegration::GetSingleton() -> SKEEIntegration& {
@@ -150,6 +129,35 @@ void SKEEIntegration::UpdateModelWeight(RE::Actor& a_actor) {
     m_bodyMorph->UpdateModelWeight(&a_actor);
 }
 
+void SKEEIntegration::ApplyVertexDiff(RE::TESObjectREFR& a_refr, RE::NiAVObject& a_object, bool a_isAttaching) {
+    if (m_bodyMorph == nullptr) {
+        return;
+    }
+    REX::DEBUG(
+        "[ApplyOne] refr={:08X} mesh='{}' isAttaching={}", a_refr.GetFormID(), a_object.name.c_str(), a_isAttaching);
+    m_bodyMorph->ApplyVertexDiff(&a_refr, &a_object, a_isAttaching);
+}
+
+auto SKEEIntegration::HasShapeDataRecursive(RE::NiAVObject* a_object) -> bool {
+    if (a_object == nullptr) {
+        return false;
+    }
+    if (a_object->GetExtraData("SHAPEDATA") != nullptr) {
+        return true;
+    }
+    // skyrim_cast 走引擎 RTTI 的继承链，BSFadeNode / BSFaceGenNiNode 等
+    // NiNode 子类都会被识别。
+    auto* node = skyrim_cast<RE::NiNode*>(a_object);
+    if (node != nullptr) {
+        for (auto& child : node->children) {
+            if (child && HasShapeDataRecursive(child.get())) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor) {
     if (m_bodyMorph == nullptr) {
         return;
@@ -174,7 +182,7 @@ void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor) {
                            a_actor.GetFormID(),
                            data.partClone->name.c_str(),
                            isFirstPerson);
-                m_bodyMorph->ApplyVertexDiff(&a_actor, data.partClone.get(), false);
+                ApplyVertexDiff(a_actor, *data.partClone, /*a_isAttaching=*/false);
             }
         };
         processArray(weightModel->objects);

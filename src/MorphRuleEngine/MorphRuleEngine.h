@@ -19,12 +19,11 @@ public:
     // 启动时注入编译后的规则。
     void SetRules(CompiledRules a_rules);
 
-    // 处理一次装备/卸下事件。
-    //
-    // slot 过滤：只评估 triggeredBy 与 a_armor 占据的 biped 槽匹配的 morph。
-    //
-    // equipped 门禁：a_equipped == false 时谓词一律不求值，视为不命中，
-    // 直接走 Default 分支。
+    // 只求值并 SetAbsolute，不碰 mesh。返回是否有规则命中。
+    // 幂等——重复调用结果相同。
+    auto EvaluateRules(RE::Actor* a_actor, RE::TESObjectARMO* a_armor, bool a_equipped) -> bool;
+
+    // 处理 TESEquipEvent：求值 + 对旧装备重应用
     void OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armor, bool a_equipped);
 
     // 对 actor 当前所有已装备的 armor 跑一遍规则。
