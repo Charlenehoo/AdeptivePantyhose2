@@ -38,8 +38,6 @@ void BodyMorphInterface::OnAttach(TESObjectREFR* refr, TESObjectARMO* armor, TES
 }
 ```
 
-````
-
 调用链：
 
 ```
@@ -351,4 +349,7 @@ v3.0.2 的修复日志（`docs/Architecture.md` §7.7 引用）：
 | `vendor/SKEE/include/IPluginInterface.h` | SKEE 接口定义（插件侧可见的唯一 SKEE 头文件）           |
 | `skee64/BodyMorphInterface.cpp`          | SKEE 实现，`ApplyVertexDiff` / `OnAttach` / `SHAPEDATA` |
 | `skee64/ActorUpdateManager.cpp`          | observer 注册与遍历                                     |
-````
+
+```
+
+```
