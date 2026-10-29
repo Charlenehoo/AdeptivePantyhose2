@@ -36,6 +36,31 @@ constexpr const char* kNamespaceKey = "AdeptivePantyhoseMorphKey";
 // 可以移除。
 constexpr const char* kLegacyNamespaceKey = "CH_AdeptivePantyhoseMorphKey";
 
+// RE::NiNode::Ni_RTTI 是 REL::ID（地址库 ID），GetRTTI() 返回 const NiRTTI*。
+// 用 REL::Relocation 把 REL::ID 解成实际指针再比较。
+[[nodiscard]] auto NiNodeRTTI() -> const RE::NiRTTI* {
+    static const REL::Relocation<const RE::NiRTTI*> s_rtti{RE::NiNode::Ni_RTTI};
+    return s_rtti.get();
+}
+
+[[nodiscard]] auto HasShapeDataRecursive(RE::NiAVObject* a_object) -> bool {
+    if (a_object == nullptr) {
+        return false;
+    }
+    if (a_object->GetExtraData("SHAPEDATA") != nullptr) {
+        return true;
+    }
+    if (a_object->GetRTTI() == NiNodeRTTI()) {
+        auto* node = static_cast<RE::NiNode*>(a_object);
+        for (auto& child : node->children) {
+            if (child && HasShapeDataRecursive(child.get())) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 }  // namespace
 
 auto SKEEIntegration::GetSingleton() -> SKEEIntegration& {
@@ -129,9 +154,8 @@ void SKEEIntegration::UpdateModelWeight(RE::Actor& a_actor) {
     m_bodyMorph->UpdateModelWeight(&a_actor);
 }
 
-void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
-                                                  const std::unordered_set<RE::FormID>& a_oldArmors) {
-    if (m_bodyMorph == nullptr || a_oldArmors.empty()) {
+void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor) {
+    if (m_bodyMorph == nullptr) {
         return;
     }
 
@@ -147,21 +171,13 @@ void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
                 if (!data.partClone) {
                     continue;
                 }
-                auto* form = data.item;
-                if (form == nullptr) {
-                    continue;
+                if (!HasShapeDataRecursive(data.partClone.get())) {
+                    continue;  // 未就绪或无 morph target，等它自己的 OnAttach
                 }
-                auto* armor = form->template As<RE::TESObjectARMO>();
-                if (armor == nullptr) {
-                    continue;
-                }
-                if (!a_oldArmors.contains(armor->GetFormID())) {
-                    continue;
-                }
-                REX::DEBUG("[ApplyOther] refr={:08X} mesh='{}' armor={:08X}",
+                REX::DEBUG("[ApplyOther] refr={:08X} mesh='{}' isFP={}",
                            a_actor.GetFormID(),
                            data.partClone->name.c_str(),
-                           armor->GetFormID());
+                           isFirstPerson);
                 m_bodyMorph->ApplyVertexDiff(&a_actor, data.partClone.get(), false);
             }
         };

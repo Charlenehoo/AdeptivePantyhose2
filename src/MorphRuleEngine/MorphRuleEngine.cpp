@@ -123,7 +123,7 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
     }
 
     if (anyApplied) {
-        SKEEIntegration::GetSingleton().ApplyVertexDiffToWornMeshes(*a_actor, oldArmors);
+        SKEEIntegration::GetSingleton().ApplyVertexDiffToWornMeshes(*a_actor);
     }
 }
 

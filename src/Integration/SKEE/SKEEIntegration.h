@@ -62,7 +62,7 @@ public:
     // 对 actor 当前已存在的 biped mesh 以 isAttaching=false 调用 ApplyVertexDiff。
     // a_oldArmors 是事件前 GetWornArmor 的旧值集合，用于精确排除当前正在
     // attach 的装备，避免为未就绪 mesh 创建错误 SHAPEDATA。
-    void ApplyVertexDiffToWornMeshes(RE::Actor& a_actor, const std::unordered_set<RE::FormID>& a_oldArmors);
+    void ApplyVertexDiffToWornMeshes(RE::Actor& a_actor);
 
 private:
     SKEEIntegration() = default;
