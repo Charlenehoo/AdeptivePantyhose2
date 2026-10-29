@@ -175,13 +175,18 @@ void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor) {
                 if (!data.partClone) {
                     continue;
                 }
-                if (!HasShapeDataRecursive(data.partClone.get())) {
-                    continue;  // 未就绪或无 morph target，等它自己的 OnAttach
+                // 门禁：mesh 已挂到场景图（顶点就绪）。不用 HasShapeDataRecursive——
+                // NoHeel=0 时 HasMorphs=false，SKEE 不创建 SHAPEDATA，但 mesh 已就绪，
+                // ApplyVertexDiff(false) 的 !bodyData 分支会用当前 base 顶点创建
+                // SHAPEDATA，这是正确的。未挂到场景图的 mesh（v3.0.2 bug 路径）跳过。
+                if (data.partClone->parent == nullptr) {
+                    continue;
                 }
-                REX::DEBUG("[ApplyOther] refr={:08X} mesh='{}' isFP={}",
+                REX::DEBUG("[ApplyOther] refr={:08X} mesh='{}' isFP={} parent={:p}",
                            a_actor.GetFormID(),
                            data.partClone->name.c_str(),
-                           isFirstPerson);
+                           isFirstPerson,
+                           static_cast<void*>(data.partClone->parent));
                 ApplyVertexDiff(a_actor, *data.partClone, /*a_isAttaching=*/false);
             }
         };
