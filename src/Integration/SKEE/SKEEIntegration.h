@@ -59,16 +59,10 @@ public:
     // 建议在一次事件里对多个 morph 做完 SetAbsolute 之后调用一次。
     void UpdateModelWeight(RE::Actor& a_actor);
 
-    // 仅对当前正在 attach 的 mesh 以 isAttaching=true 调用 ApplyVertexDiff。
-    // 用于 SKEE 自身 OnAttach 未初始化当前 mesh 时的兜底。
-    void ApplyVertexDiffCurrentMesh(RE::TESObjectREFR& a_refr, RE::NiAVObject& a_object);
-
-    // 对 actor 当前所有已 attach 的 armor addon mesh 以 isAttaching=false 调用 ApplyVertexDiff。
-    // a_attachingArmor / a_attachingAddon / a_isFirstPerson 用于跳过当前 mesh 并输出日志。
-    void ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
-                                     RE::TESObjectARMO* a_attachingArmor,
-                                     RE::TESObjectARMA* a_attachingAddon,
-                                     bool a_isFirstPerson);
+    // 对 actor 当前已存在的 biped mesh 以 isAttaching=false 调用 ApplyVertexDiff。
+    // a_oldArmors 是事件前 GetWornArmor 的旧值集合，用于精确排除当前正在
+    // attach 的装备，避免为未就绪 mesh 创建错误 SHAPEDATA。
+    void ApplyVertexDiffToWornMeshes(RE::Actor& a_actor, const std::unordered_set<RE::FormID>& a_oldArmors);
 
 private:
     SKEEIntegration() = default;

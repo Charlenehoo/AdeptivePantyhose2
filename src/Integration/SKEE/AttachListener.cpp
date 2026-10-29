@@ -3,51 +3,24 @@
 
 #include "Integration/SKEE/AttachListener.h"
 
-#include "Integration/SKEE/SKEEIntegration.h"
-
-namespace {
-
-[[nodiscard]] auto HasShapeData(RE::NiAVObject* a_object) -> bool {
-    if (a_object == nullptr) {
-        return false;
-    }
-    return a_object->GetExtraData("SHAPEDATA") != nullptr;
-}
-
-}  // namespace
-
 auto AttachListener::GetSingleton() -> AttachListener& {
     static AttachListener s_singleton;
     return s_singleton;
 }
 
-void AttachListener::OnAttach(RE::TESObjectREFR* a_refr,
-                              RE::TESObjectARMO* a_armor,
-                              RE::TESObjectARMA* a_addon,
-                              RE::NiAVObject* a_object,
-                              bool a_isFirstPerson,
+void AttachListener::OnAttach(RE::TESObjectREFR* /*a_refr*/,
+                              RE::TESObjectARMO* /*a_armor*/,
+                              RE::TESObjectARMA* /*a_addon*/,
+                              RE::NiAVObject* /*a_object*/,
+                              bool /*a_isFirstPerson*/,
                               RE::NiNode* /*a_skeleton*/,
                               RE::NiNode* /*a_root*/) {
-    if (a_refr == nullptr || a_armor == nullptr || a_object == nullptr) {
-        return;
-    }
-
-    REX::DEBUG("[Attach] refr={:08X} attachingArmor={:08X} attachingAddon={:08X} isFP={} object='{}' hasShapeData={}",
-               a_refr->GetFormID(),
-               a_armor->GetFormID(),
-               a_addon != nullptr ? a_addon->GetFormID() : 0,
-               a_isFirstPerson,
-               a_object->name.c_str(),
-               HasShapeData(a_object));
-
-    if (!HasShapeData(a_object)) {
-        REX::WARN("[Attach] current mesh '{}' has no SHAPEDATA, initializing with isAttaching=true",
-                  a_object->name.c_str());
-        SKEEIntegration::GetSingleton().ApplyVertexDiffCurrentMesh(*a_refr, *a_object);
-    }
-
-    auto* actor = a_refr->As<RE::Actor>();
-    if (actor != nullptr) {
-        SKEEIntegration::GetSingleton().ApplyVertexDiffToWornMeshes(*actor, a_armor, a_addon, a_isFirstPerson);
-    }
+    // v3.0.4 起此回调不做任何事：
+    // - 当前 mesh 的 SHAPEDATA 由 SKEE 的 BodyMorphInterface::OnAttach
+    //   以 isAttaching=true 处理（我们在 observer vector 末尾，它已完成）。
+    // - 其他已存在 mesh 的更新由 OnEquipEvent 栈里的
+    //   SKEEIntegration::ApplyVertexDiffToWornMeshes 驱动。
+    //
+    // 不要在这里调 ApplyVertexDiff(true)：isAttaching=true 不重置顶点，
+    // 会在 SKEE 已应用的顶点上再次叠加 morph delta（double application）。
 }

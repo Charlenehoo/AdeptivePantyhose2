@@ -38,17 +38,6 @@ constexpr const char* kLegacyNamespaceKey = "CH_AdeptivePantyhoseMorphKey";
 
 }  // namespace
 
-namespace {
-
-[[nodiscard]] auto HasShapeData(RE::NiAVObject* a_object) -> bool {
-    if (a_object == nullptr) {
-        return false;
-    }
-    return a_object->GetExtraData("SHAPEDATA") != nullptr;
-}
-
-}  // namespace
-
 auto SKEEIntegration::GetSingleton() -> SKEEIntegration& {
     static SKEEIntegration s_singleton;
     return s_singleton;
@@ -140,29 +129,17 @@ void SKEEIntegration::UpdateModelWeight(RE::Actor& a_actor) {
     m_bodyMorph->UpdateModelWeight(&a_actor);
 }
 
-void SKEEIntegration::ApplyVertexDiffCurrentMesh(RE::TESObjectREFR& a_refr, RE::NiAVObject& a_object) {
-    if (m_bodyMorph == nullptr) {
-        return;
-    }
-    REX::DEBUG("[ApplyCurrent] refr={:08X} mesh='{}'", a_refr.GetFormID(), a_object.name.c_str());
-    m_bodyMorph->ApplyVertexDiff(&a_refr, &a_object, true);
-}
-
 void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
-                                                  RE::TESObjectARMO* a_attachingArmor,
-                                                  RE::TESObjectARMA* a_attachingAddon,
-                                                  bool a_isFirstPerson) {
-    if (m_bodyMorph == nullptr) {
+                                                  const std::unordered_set<RE::FormID>& a_oldArmors) {
+    if (m_bodyMorph == nullptr || a_oldArmors.empty()) {
         return;
     }
 
-    for (std::uint32_t k = 0; k <= 1; ++k) {
-        auto weightModel = a_actor.GetBiped(k);
+    for (const bool isFirstPerson : {false, true}) {
+        const auto& weightModel = a_actor.GetBiped(isFirstPerson);
         if (!weightModel) {
             continue;
         }
-
-        const bool isFirstPerson = (k == 1);
 
         auto processArray = [&](auto& a_array) {
             for (std::uint32_t i = 0; i < RE::BIPED_OBJECTS::kTotal; ++i) {
@@ -170,42 +147,24 @@ void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor,
                 if (!data.partClone) {
                     continue;
                 }
-
-                auto* armor = data.item ? data.item->template As<RE::TESObjectARMO>() : nullptr;
-                auto* addon = data.addon;
-
-                const bool isAttaching =
-                    (armor != nullptr && a_attachingArmor != nullptr &&
-                     armor->GetFormID() == a_attachingArmor->GetFormID() && addon != nullptr &&
-                     a_attachingAddon != nullptr && addon->GetFormID() == a_attachingAddon->GetFormID() &&
-                     isFirstPerson == a_isFirstPerson);
-
-                if (isAttaching) {
-                    REX::DEBUG("[ApplyOther] SKIP current mesh refr={:08X} mesh='{}' isFP={}",
-                               a_actor.GetFormID(),
-                               data.partClone->name.c_str(),
-                               isFirstPerson);
+                auto* form = data.item;
+                if (form == nullptr) {
                     continue;
                 }
-
-                const bool hasShapeData = HasShapeData(data.partClone.get());
-                REX::DEBUG("[ApplyOther] refr={:08X} mesh='{}' armor={:08X} addon={:08X} isFP={} hasShapeData={}",
+                auto* armor = form->template As<RE::TESObjectARMO>();
+                if (armor == nullptr) {
+                    continue;
+                }
+                if (!a_oldArmors.contains(armor->GetFormID())) {
+                    continue;
+                }
+                REX::DEBUG("[ApplyOther] refr={:08X} mesh='{}' armor={:08X}",
                            a_actor.GetFormID(),
                            data.partClone->name.c_str(),
-                           armor != nullptr ? armor->GetFormID() : 0,
-                           addon != nullptr ? addon->GetFormID() : 0,
-                           isFirstPerson,
-                           hasShapeData);
-
-                if (!hasShapeData) {
-                    REX::DEBUG("[ApplyOther] mesh='{}' has no SHAPEDATA, skip (will be handled by its own OnAttach)",
-                               data.partClone->name.c_str());
-                    continue;
-                }
+                           armor->GetFormID());
                 m_bodyMorph->ApplyVertexDiff(&a_actor, data.partClone.get(), false);
             }
         };
-
         processArray(weightModel->objects);
         processArray(weightModel->bufferedObjects);
     }

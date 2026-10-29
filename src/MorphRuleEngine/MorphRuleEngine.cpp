@@ -9,13 +9,20 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <iterator>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 namespace MorphRules::Engine {
 
 namespace {
+
+// BipedObjectSlot 是位标志枚举，kFX01 = 1U << 31，共 32 个有效位。
+// 与 BIPED_OBJECTS::kTotal（42）不同：后者是 bipedData 数组长度，
+// 包含 GetWornArmor 不接受的额外槽位。
+constexpr std::uint32_t kBipedSlotBitCount = 32;
 
 // 对单条 morph 求值并应用。返回 true 表示有规则命中并执行了写入。
 //
@@ -63,6 +70,22 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
         return;
     }
 
+    // 收集旧装备（TESEquipEvent 期间 GetWornArmor 返回旧值）
+    std::unordered_set<RE::FormID> oldArmors;
+    for (std::uint32_t slot = 0; slot < kBipedSlotBitCount; ++slot) {
+        const auto slotBit = static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(1U << slot);
+        if (auto* worn = a_actor->GetWornArmor(slotBit); worn != nullptr) {
+            oldArmors.insert(worn->GetFormID());
+        }
+    }
+
+    // 卸下事件：GetWornArmor 仍返回即将移除的 armor，显式排除
+    if (a_armor != nullptr) {
+        oldArmors.erase(a_armor->GetFormID());
+    }
+
+    bool anyApplied = false;
+
     for (const auto& [morphName, morph] : m_rules.morphs) {
         const bool slotMatch = a_armor != nullptr && a_armor->HasPartOf(morph.triggeredBy);
 
@@ -94,13 +117,14 @@ void MorphRuleEngine::OnEquipEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armo
                    std::to_underlying(morph.triggeredBy),
                    slotMatch ? "slot-match" : "default-init");
 
-        // 不再收集 anyApplied，也不再调 UpdateModelWeight
-        (void)EvaluateAndApply(a_actor, morphName, morph, wornArmor, equipped);
+        if (EvaluateAndApply(a_actor, morphName, morph, wornArmor, equipped)) {
+            anyApplied = true;
+        }
     }
 
-    // mesh 更新由 AttachListener::OnAttach 驱动：
-    // - 当前 mesh：SKEE BodyMorphInterface::OnAttach（isAttaching=true）
-    // - 其他已存在 mesh：AttachListener::OnAttach 中的 ApplyVertexDiff(false)
+    if (anyApplied) {
+        SKEEIntegration::GetSingleton().ApplyVertexDiffToWornMeshes(*a_actor, oldArmors);
+    }
 }
 
 void MorphRuleEngine::OnActorLoaded(RE::Actor* a_actor) {
