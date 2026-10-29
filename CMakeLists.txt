@@ -90,15 +90,17 @@ target_precompile_headers("${PROJECT_NAME}" PRIVATE src/pch.h)
 # ─────── MO2 自动部署 ───────
 # SE 与 AE 部署到不同的 mod 目录，避免互相覆盖。
 # 用户按游戏版本在 MO2 里启用对应的那个 mod。
-if(DEFINED ENV{MO2})
+if(DEFINED ENV{MO2MODS})
     if(BUILD_SKYRIM_AE)
         set(MO2_MOD_NAME "${PROJECT_NAME}_AE")
     else()
         set(MO2_MOD_NAME "${PROJECT_NAME}_SE")
     endif()
 
-    set(MO2_MOD_DIR "$ENV{MO2}/mods/${MO2_MOD_NAME}")
-    set(MO2_PLUGIN_DIR "${MO2_MOD_DIR}/SKSE/Plugins")
+    set(MO2_MOD_DIR "$ENV{MO2MODS}/${MO2_MOD_NAME}")
+    cmake_path(NORMAL_PATH MO2_MOD_DIR)
+    cmake_path(APPEND MO2_MOD_DIR "SKSE" "Plugins"
+        OUTPUT_VARIABLE MO2_PLUGIN_DIR)
 
     # ---- DLL ----
     add_custom_command(
@@ -137,7 +139,7 @@ if(DEFINED ENV{MO2})
 
     message(STATUS "MO2 detected. Mod dir: ${MO2_MOD_DIR}")
 else()
-    message(STATUS "MO2 environment variable not found. Skipping auto-copy.")
+    message(STATUS "MO2MODS environment variable not found. Skipping auto-copy.")
 endif()
 
 # ─────── Link ${PROJECT_NAME}.log into project root (Windows only) ───────
