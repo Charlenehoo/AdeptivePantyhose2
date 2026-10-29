@@ -36,13 +36,6 @@ constexpr const char* kNamespaceKey = "AdeptivePantyhoseMorphKey";
 // 可以移除。
 constexpr const char* kLegacyNamespaceKey = "CH_AdeptivePantyhoseMorphKey";
 
-// RE::NiNode::Ni_RTTI 是 REL::ID（地址库 ID），GetRTTI() 返回 const NiRTTI*。
-// 用 REL::Relocation 把 REL::ID 解成实际指针再比较。
-[[nodiscard]] auto NiNodeRTTI() -> const RE::NiRTTI* {
-    static const REL::Relocation<const RE::NiRTTI*> s_rtti{RE::NiNode::Ni_RTTI};
-    return s_rtti.get();
-}
-
 [[nodiscard]] auto HasShapeDataRecursive(RE::NiAVObject* a_object) -> bool {
     if (a_object == nullptr) {
         return false;
@@ -50,8 +43,11 @@ constexpr const char* kLegacyNamespaceKey = "CH_AdeptivePantyhoseMorphKey";
     if (a_object->GetExtraData("SHAPEDATA") != nullptr) {
         return true;
     }
-    if (a_object->GetRTTI() == NiNodeRTTI()) {
-        auto* node = static_cast<RE::NiNode*>(a_object);
+    // skyrim_cast 走引擎 RTTI 的继承链，BSFadeNode / BSFaceGenNiNode 等
+    // NiNode 子类都会被识别。直接比较 GetRTTI() == NiNode::Ni_RTTI
+    // 只匹配精确类型，漏掉所有子类。
+    auto* node = skyrim_cast<RE::NiNode*>(a_object);
+    if (node != nullptr) {
         for (auto& child : node->children) {
             if (child && HasShapeDataRecursive(child.get())) {
                 return true;
