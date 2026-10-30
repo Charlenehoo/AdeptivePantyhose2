@@ -603,15 +603,17 @@ src/
 
 ## 12. 历史文档
 
-| 文档                                           | 版本            | 状态                       |
-| ---------------------------------------------- | --------------- | -------------------------- |
-| `Architecture.md`                              | v3.0.2          | **已冻结**，本文档取代     |
-| `skee-behavior-notes.md`                       | v3.0.2 / v3.0.3 | 已冻结，修正见 `-2`        |
-| `skee-behavior-notes-2.md`                     | v3.0.4          | 当前                       |
-| `toenail-report-2026-10-27.md`                 | v3.0.3 设计期   | 历史，根因分析             |
-| `toenail-onattach-design-2026-10-27.md`        | v3.0.3 设计期   | 历史，方案已被 v3.0.4 取代 |
-| `v3.0.3-onattach-fix.md`                       | v3.0.3          | 历史，设计已被 v3.0.4 取代 |
-| `onattach-d3d-regression-report-2026-10-29.md` | v3.0.4 调查     | 当前，v3.0.3 回归根因      |
-| `v3.0.4-ssot-refactor.md`                      | v3.0.4          | 当前，演进细节             |
-| `v3.0.4-pitfalls-and-regression-guards.md`     | v3.0.4          | 当前，踩坑与防回归         |
-| **本文档**                                     | **v3.0.4**      | **当前主文档**             |
+| 文档                                             | 版本            | 状态                                                       |
+| ------------------------------------------------ | --------------- | ---------------------------------------------------------- |
+| `archived/Architecture.md`                       | v3.0.2          | 已冻结，本文档取代                                         |
+| `archived/skee-behavior-notes.md`                | v3.0.2 / v3.0.3 | 已冻结，`skee-behavior-notes.md` 取代                      |
+| `archived/skee-behavior-notes-2.md`              | v3.0.4 修正版   | 已冻结，内容已合并到 `skee-behavior-notes.md`              |
+| `archived/toenail-report-2026-10-27.md`          | v3.0.3 设计期   | 历史，根因推理链，结论已吸收到 `skee-behavior-notes.md` §4 |
+| `archived/toenail-onattach-design-2026-10-27.md` | v3.0.3 设计期   | 历史，设计已被 v3.0.4 明确否定                             |
+| `archived/v3.0.3-onattach-fix.md`                | v3.0.3          | 历史，v3.0.3 有回归，设计已被 v3.0.4 取代                  |
+| `skee-behavior-notes.md`                         | v3.0.2 → v3.0.5 | 当前，合并版                                               |
+| `onattach-d3d-regression-report-2026-10-29.md`   | v3.0.3 回归调查 | 当前证据链，§5 修复方向已过时，§3/§6 仍有效                |
+| `v3.0.4-ssot-refactor.md`                        | v3.0.4          | 当前，演进细节                                             |
+| `v3.0.4-pitfalls-and-regression-guards.md`       | v3.0.4          | 当前，踩坑与防回归                                         |
+| `onattach-thread-affinity-report-2026-10-30.md`  | v3.0.5 调查     | 当前，OnAttach 跨线程                                      |
+| **`Architecture.md`**                            | **v3.0.4**      | **当前主文档**                                             |

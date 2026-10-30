@@ -1,3 +1,6 @@
+> ⚠️ **历史快照，已冻结**。当前文档见 [`../Architecture.md`](../Architecture.md)。
+> 本文档描述的 v3.0.x 行为已被后续版本取代，保留仅供追溯。
+
 # AdeptivePantyhose 架构
 
 **版本**：v3.0.2

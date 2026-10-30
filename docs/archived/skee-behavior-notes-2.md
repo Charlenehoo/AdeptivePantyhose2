@@ -1,3 +1,6 @@
+> ⚠️ **历史快照，已冻结**。当前文档见 [`../skee-behavior-notes.md`](../skee-behavior-notes.md)。
+> 本文档描述的 v3.0.x 行为已被后续版本取代，保留仅供追溯。
+
 # SKEE BodyMorph 行为笔记（续，v3.0.4 调查期间）
 
 **日期**：2026-10-29

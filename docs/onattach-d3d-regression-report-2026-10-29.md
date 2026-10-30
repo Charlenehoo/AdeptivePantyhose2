@@ -1,3 +1,8 @@
+> **注**：本文档是 v3.0.4 设计的直接证据链，§3 根因分析、§6 决策依据仍有效。
+> **§5 的修复方向（`GetWornArmor` 旧值集合 + `bipedData` 遍历）在 v3.0.4 WIP 期间被证明不可行**：
+> `TESEquipEvent` 期间 `bipedData->partClone` 可能未就绪，`ApplyVertexDiff` 静默失败。
+> 最终方案是 `OnAttach` 作为 SSOT（见 [`v3.0.4-ssot-refactor.md`](v3.0.4-ssot-refactor.md) §2.3、§2.4）。
+
 # v3.0.3 回归调查报告：OnAttach 栈内的 D3D 操作与两个用户 bug
 
 **版本**：v3.0.3 已发布后的回归调查
@@ -6,7 +11,7 @@
 **状态**：根因已定位，修复方向已确定，待实现与验证
 **关联**：
 
-- [`toenail-report-2026-10-27.md`](toenail-report-2026-10-27.md) — v3.0.3 的设计来源
+- [`archived/toenail-report-2026-10-27.md`](archived/toenail-report-2026-10-27.md) — v3.0.3 的设计来源
 - v3.0.2 → v3.0.3 的实现变更
 
 ---
