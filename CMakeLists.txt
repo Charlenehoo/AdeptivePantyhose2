@@ -5,6 +5,7 @@ project(AdeptivePantyhose VERSION 3.0.4 LANGUAGES CXX)
 set(PROJECT_AUTHOR "Charlene Hoo")
 set(PROJECT_AUTHOR_EMAIL "CharleneHoo@hotmail.com")
 
+# ─────── 项目配置 ───────
 set(VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/src/Plugin.h")
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Plugin.h.in"
@@ -24,6 +25,7 @@ else()
     message(STATUS "Building for Skyrim SE 1.5.97")
 endif()
 
+# ─────── 本项目 target ───────
 add_library(
     "${PROJECT_NAME}" SHARED
     src/main.cpp
@@ -37,13 +39,11 @@ add_library(
     src/MorphRuleEngine/Leaves/FormIDRangePredicate.cpp
 )
 target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_23)
-
-# ─────── 产物名区分：SE / AE 不能互相覆盖 ───────
-if(BUILD_SKYRIM_AE)
-    set_target_properties("${PROJECT_NAME}" PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_AE")
-else()
-    set_target_properties("${PROJECT_NAME}" PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_SE")
-endif()
+target_include_directories(
+    "${PROJECT_NAME}" PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${CMAKE_CURRENT_BINARY_DIR}/src"
+)
 
 if(MSVC)
     target_compile_options("${PROJECT_NAME}" PRIVATE
@@ -54,12 +54,14 @@ if(MSVC)
     )
 endif()
 
-target_include_directories(
-    "${PROJECT_NAME}" PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src"
-    "${CMAKE_CURRENT_BINARY_DIR}/src"
-)
+# ─────── 产物名区分：SE / AE 不能互相覆盖 ───────
+if(BUILD_SKYRIM_AE)
+    set_target_properties("${PROJECT_NAME}" PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_AE")
+else()
+    set_target_properties("${PROJECT_NAME}" PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_SE")
+endif()
 
+# ─────── 第三方依赖 ───────
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/CommonLibSSE" CommonLibSSE EXCLUDE_FROM_ALL SYSTEM)
 if(TARGET CommonLibSSE)
     target_compile_options(CommonLibSSE PRIVATE
@@ -74,6 +76,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/vendor/SKEE" SKEE)
 find_package(absl CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
+# ─────── 链接与最终配置 ───────
 target_link_libraries(
     "${PROJECT_NAME}" PRIVATE
     SKEE::SKEE
