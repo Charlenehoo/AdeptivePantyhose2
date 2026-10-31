@@ -57,12 +57,15 @@ if(MSVC)
 endif()
 
 # ─────── 产物名 ───────
-# SE / AE 不能互相覆盖。
+# SE / AE 不能互相覆盖。TARGET_SUFFIX 同时用于 DLL 名和 MO2 目录名。
 if(BUILD_SKYRIM_AE)
-    set_target_properties("${PROJECT_NAME}" PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_AE")
+    set(TARGET_SUFFIX "AE")
 else()
-    set_target_properties("${PROJECT_NAME}" PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_SE")
+    set(TARGET_SUFFIX "SE")
 endif()
+set_target_properties("${PROJECT_NAME}" PROPERTIES
+    OUTPUT_NAME "${PROJECT_NAME}_${TARGET_SUFFIX}")
+message(STATUS "Output: ${PROJECT_NAME}_${TARGET_SUFFIX}.dll")
 
 # ─────── 第三方依赖 ───────
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/extern/CommonLibSSE" CommonLibSSE EXCLUDE_FROM_ALL SYSTEM)
@@ -94,11 +97,7 @@ target_precompile_headers("${PROJECT_NAME}" PRIVATE src/pch.h)
 # SE 与 AE 部署到不同的 mod 目录，避免互相覆盖。
 # 用户按游戏版本在 MO2 里启用对应的那个 mod。
 if(DEFINED ENV{MO2MODS})
-    if(BUILD_SKYRIM_AE)
-        set(MO2_MOD_NAME "${PROJECT_NAME}_AE")
-    else()
-        set(MO2_MOD_NAME "${PROJECT_NAME}_SE")
-    endif()
+    set(MO2_MOD_NAME "${PROJECT_NAME}_${TARGET_SUFFIX}")
 
     set(MO2_MOD_DIR "$ENV{MO2MODS}/${MO2_MOD_NAME}")
     cmake_path(NORMAL_PATH MO2_MOD_DIR)
