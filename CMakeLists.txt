@@ -5,6 +5,22 @@ project(AdeptivePantyhose VERSION 3.0.4 LANGUAGES CXX)
 set(PROJECT_AUTHOR "Charlene Hoo")
 set(PROJECT_AUTHOR_EMAIL "CharleneHoo@hotmail.com")
 
+# ─────── 构建开关 ───────
+# 所有 option 集中在此，configure 输出会打印每个开关的最终状态。
+# 修改后需要重新 configure（cmake --preset ...），只 cmake --build 不生效。
+
+# 目标平台：SE 1.5.97（默认）或 AE 1.6.1130+。
+# 必须在 add_subdirectory(CommonLibSSE) 之前定义 SKYRIM_AE 宏，
+# 否则 CommonLibSSE 按 SE 编译，与 AE 产物不匹配。
+option(BUILD_SKYRIM_AE "Build for Skyrim AE 1.6.1130+" OFF)
+
+if(BUILD_SKYRIM_AE)
+    message(STATUS "Target: Skyrim AE (1.6.1130+)")
+    add_compile_definitions(SKYRIM_AE SKYRIM_SUPPORT_AE)
+else()
+    message(STATUS "Target: Skyrim SE (1.5.97)")
+endif()
+
 # ─────── 版本头 ───────
 # 从 Plugin.h.in 生成带版本号、项目名的 Plugin.h。
 set(VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/src/Plugin.h")
@@ -13,19 +29,6 @@ configure_file(
     "${VERSION_HEADER}"
     @ONLY
 )
-
-# ─────── 目标平台 ───────
-# SE 1.5.97（默认）或 AE 1.6.1130+。
-# 注意：这两个宏必须在 add_subdirectory(CommonLibSSE) 之前定义，
-# 否则 CommonLibSSE 会按默认（SE）编译，与 AE 产物不匹配。
-option(BUILD_SKYRIM_AE "Build for Skyrim AE" OFF)
-
-if(BUILD_SKYRIM_AE)
-    add_compile_definitions(SKYRIM_AE SKYRIM_SUPPORT_AE)
-    message(STATUS "Building for Skyrim AE (1.6.1130+)")
-else()
-    message(STATUS "Building for Skyrim SE 1.5.97")
-endif()
 
 # ─────── 本项目 target ───────
 add_library(
