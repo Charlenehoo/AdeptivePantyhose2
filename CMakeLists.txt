@@ -1,7 +1,7 @@
 # 使用 3.26：copy_directory_if_different 需要 3.26。
 # 不升到 3.31：实测构建步骤会从 393 增至 783，原因待查。
 cmake_minimum_required(VERSION 3.26)
-project(AdeptivePantyhose VERSION 3.0.4 LANGUAGES CXX)
+project(AdeptivePantyhose VERSION 3.0.5 LANGUAGES CXX)
 set(PROJECT_AUTHOR "Charlene Hoo")
 set(PROJECT_AUTHOR_EMAIL "CharleneHoo@hotmail.com")
 
@@ -171,7 +171,7 @@ endif()
 
 # ─────── 发布打包 ───────
 # 手动触发：cmake --build --preset msvc-ae-release --target package
-# 生成 dist/AdeptivePantyhose_AE_v3.0.4.7z，内含 SKSE/... 结构，
+# 生成 dist/AdeptivePantyhose_<后缀>_v<版本>.7z，内含 SKSE/... 结构，
 # 不含 PDB（PDB 只用于本地测试部署）。
 find_program(SEVEN_ZIP_EXE NAMES 7z 7za 7zz)
 if(NOT SEVEN_ZIP_EXE)

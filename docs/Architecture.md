@@ -1,7 +1,7 @@
 # AdeptivePantyhose 架构
 
-**版本**：v3.0.4
-**最后更新**：2026-10-30
+**版本**：v3.0.5
+**最后更新**：2026-10-31
 **状态**：当前架构文档，取代 `Architecture.md`（v3.0.2 快照，已冻结）
 
 本文档描述 AdeptivePantyhose 的当前架构与设计决策。目标读者为维护者与想要扩展规则配置的高级用户。v3.0.2 → v3.0.4 的演进细节见 `docs/v3.0.4-ssot-refactor.md`，WIP 期间的踩坑见 `docs/v3.0.4-pitfalls-and-regression-guards.md`。
