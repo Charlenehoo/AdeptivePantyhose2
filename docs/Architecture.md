@@ -573,7 +573,12 @@ src/
 
 日志宏来自 `REX`（`commonlib-shared` 提供）。`REX::FAIL` = 日志 + 弹窗 + 终止进程；`REX::CRITICAL` 只写日志。插件初始化阶段的不可恢复错误用 `REX::FAIL`，运行时的严重异常（不影响继续运行）用 `CRITICAL`。
 
-**DEBUG 级在正式版由编译期剔除**：release 配置默认 `SPDLOG_ACTIVE_LEVEL = SPDLOG_LEVEL_INFO`，所有 `REX::DEBUG` 调用在编译期消失——参数不求值，字符串不进二进制。详细日志版通过构建参数提到 `SPDLOG_LEVEL_TRACE`，同一份源码原样编出全量日志，不需要运行时开关或 `#ifdef`。
+**DEBUG / TRACE 由项目宏做零开销剔除**：`REX::DEBUG` / `REX::TRACE` 在 Release 里仍会求值参数、执行 `std::vformat`、调用 `Impl::Log`，只是 spdlog 运行时 level 过滤掉不写盘——`SPDLOG_ACTIVE_LEVEL` 对 REX 无效（`REX/LOG.h` 没有编译期守卫）。项目用 `src/Support/Log.h` 的 `LOG_DEBUG` / `LOG_TRACE` 宏做真正的零开销剔除：
+
+- 普通版：`LOG_DEBUG(...)` → `((void)0)`，参数不求值、字符串不进二进制。
+- 详细版：`LOG_DEBUG(...)` → `REX::DEBUG(...)`，sink / 路径 / 格式全部走 REX。
+
+`INFO` / `WARN` / `CRITICAL` / `FAIL` 不包宏，继续直接写 `REX::`。详细日志版通过 `cmake --preset msvc-ae-release-log` / `msvc-se-release-log` 构建，产物名加 `_Log` 后缀，部署到独立 MO2 目录。同一份源码编出两种产物，不需要运行时开关或 `#ifdef`。
 
 **日志文件**：`Documents/My Games/Skyrim Special Edition/SKSE/AdeptivePantyhose.log`。`CMakeLists.txt` 在 configure 阶段硬链接到项目根。
 
