@@ -45,12 +45,12 @@ auto EvaluateAndApply(RE::Actor* a_actor,
     if (iter == a_morph.rules.end()) {
         // 全部未命中。equipped=false 时是预期行为——谓词一律视为不命中，
         // 只有 Default 分支能命中；若 Default 都没命中，说明规则表写错了。
-        REX::DEBUG("      no rule matched (equipped={}, rules={})", a_equipped, a_morph.rules.size());
+        LOG_DEBUG("      no rule matched (equipped={}, rules={})", a_equipped, a_morph.rules.size());
         return false;
     }
 
     const auto index = static_cast<std::size_t>(std::distance(a_morph.rules.begin(), iter));
-    REX::DEBUG("      rule[{}] value={} equipped={} -> MATCH", index, iter->value, a_equipped);
+    LOG_DEBUG("      rule[{}] value={} equipped={} -> MATCH", index, iter->value, a_equipped);
 
     SKEEIntegration::GetSingleton().SetAbsolute(*a_actor, a_morphName, iter->value);
     return true;
@@ -86,7 +86,7 @@ auto MorphRuleEngine::EvaluateRules(RE::Actor* a_actor, RE::TESObjectARMO* a_arm
             continue;
         }
 
-        REX::DEBUG("  morph '{}' triggeredBy={:08X} -> {}",
+        LOG_DEBUG("  morph '{}' triggeredBy={:08X} -> {}",
                    morphName,
                    std::to_underlying(morph.triggeredBy),
                    slotMatch ? "slot-match" : "default-init");
@@ -116,13 +116,13 @@ void MorphRuleEngine::OnActorLoaded(RE::Actor* a_actor) {
         const bool equipped = armor != nullptr;
 
         if (equipped) {
-            REX::DEBUG("  morph '{}' triggeredBy={:08X} worn='{}'({:08X})",
+            LOG_DEBUG("  morph '{}' triggeredBy={:08X} worn='{}'({:08X})",
                        morphName,
                        std::to_underlying(morph.triggeredBy),
                        Support::SafeName(armor),
                        armor->GetFormID());
         } else {
-            REX::DEBUG("  morph '{}' triggeredBy={:08X} worn=<none>", morphName, std::to_underlying(morph.triggeredBy));
+            LOG_DEBUG("  morph '{}' triggeredBy={:08X} worn=<none>", morphName, std::to_underlying(morph.triggeredBy));
         }
 
         if (EvaluateAndApply(a_actor, morphName, morph, armor, equipped)) {
@@ -131,7 +131,7 @@ void MorphRuleEngine::OnActorLoaded(RE::Actor* a_actor) {
     }
 
     if (anyApplied) {
-        REX::DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", Support::SafeName(a_actor), a_actor->GetFormID());
+        LOG_DEBUG("  [Update] UpdateModelWeight actor='{}'({:08X})", Support::SafeName(a_actor), a_actor->GetFormID());
         SKEEIntegration::GetSingleton().UpdateModelWeight(*a_actor);
     }
 }

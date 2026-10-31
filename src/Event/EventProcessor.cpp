@@ -38,13 +38,13 @@ auto EventProcessor::ProcessEvent(const RE::TESEquipEvent* a_event, RE::BSTEvent
     const std::string_view fileName =
         file != nullptr ? std::string_view{file->GetFilename()} : std::string_view{"<null>"};
 
-    REX::DEBUG("[Equip] actor='{}'({:08X}) armor='{}'({:08X}) equipped={}",
+    LOG_DEBUG("[Equip] actor='{}'({:08X}) armor='{}'({:08X}) equipped={}",
                Support::SafeName(actor),
                actor->GetFormID(),
                Support::SafeName(armor),
                armor->GetFormID(),
                a_event->equipped);
-    REX::DEBUG("        file='{}' local={:08X} slotMask={:08X}",
+    LOG_DEBUG("        file='{}' local={:08X} slotMask={:08X}",
                fileName,
                armor->GetLocalFormID(),
                static_cast<std::uint32_t>(armor->GetSlotMask()));

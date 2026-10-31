@@ -23,7 +23,7 @@ constexpr const char* kMorphRulesPath = "Data/SKSE/AdeptivePantyhose/MorphRules.
 void DumpParsedConfig(const MorphRules::Syntax::ParsedConfig& a_config) {
     using MorphRules::Syntax::PredicateKind;
 
-    REX::DEBUG("[Rules] parsed: {} predicate(s), {} morph(s)", a_config.predicates.size(), a_config.morphs.size());
+    LOG_DEBUG("[Rules] parsed: {} predicate(s), {} morph(s)", a_config.predicates.size(), a_config.morphs.size());
 
     for (const auto& [name, pred] : a_config.predicates) {
         switch (pred.kind) {
@@ -34,7 +34,7 @@ void DumpParsedConfig(const MorphRules::Syntax::ParsedConfig& a_config) {
                     payload.resize(kMaxPayloadLen);
                     payload += "...";
                 }
-                REX::DEBUG("  predicate '{}': leaf {}({})", name, pred.leafType, payload);
+                LOG_DEBUG("  predicate '{}': leaf {}({})", name, pred.leafType, payload);
                 break;
             }
             case PredicateKind::kAnyOf:
@@ -47,19 +47,19 @@ void DumpParsedConfig(const MorphRules::Syntax::ParsedConfig& a_config) {
                     joined += pred.refs.at(i);
                 }
                 const char* kind = pred.kind == PredicateKind::kAnyOf ? "AnyOf" : "AllOf";
-                REX::DEBUG("  predicate '{}': {}[{}]", name, kind, joined);
+                LOG_DEBUG("  predicate '{}': {}[{}]", name, kind, joined);
                 break;
             }
             case PredicateKind::kNot:
-                REX::DEBUG("  predicate '{}': Not({})", name, pred.ref);
+                LOG_DEBUG("  predicate '{}': Not({})", name, pred.ref);
                 break;
         }
     }
 
     for (const auto& [name, morph] : a_config.morphs) {
-        REX::DEBUG("  morph '{}' triggeredBy='{}' rules={}", name, morph.triggeredBy, morph.rules.size());
+        LOG_DEBUG("  morph '{}' triggeredBy='{}' rules={}", name, morph.triggeredBy, morph.rules.size());
         for (std::size_t i = 0; i < morph.rules.size(); ++i) {
-            REX::DEBUG("    rule[{}] value={} when='{}'", i, morph.rules.at(i).value, morph.rules.at(i).whenRef);
+            LOG_DEBUG("    rule[{}] value={} when='{}'", i, morph.rules.at(i).value, morph.rules.at(i).whenRef);
         }
     }
 }
@@ -122,14 +122,14 @@ void OnMessage(SKSE::MessagingInterface::Message* a_msg) {
 
     switch (a_msg->type) {
         case SKSE::MessagingInterface::kPostPostLoad: {
-            REX::DEBUG("OnMessage: PostPostLoad");
+            LOG_DEBUG("OnMessage: PostPostLoad");
 
             // 请求外部插件 API，此时所有 SKSE 插件的 Load 已完成
             SKEEIntegration::GetSingleton().Initialize();
             break;
         }
         case SKSE::MessagingInterface::kDataLoaded: {
-            REX::DEBUG("OnMessage: DataLoaded");
+            LOG_DEBUG("OnMessage: DataLoaded");
 
             // 加载配置 + 挂游戏事件，此时游戏数据与事件源已就绪
             LoadMorphRules();
@@ -137,7 +137,7 @@ void OnMessage(SKSE::MessagingInterface::Message* a_msg) {
             break;
         }
         case SKSE::MessagingInterface::kPostLoadGame: {
-            REX::DEBUG("OnMessage: PostLoadGame");
+            LOG_DEBUG("OnMessage: PostLoadGame");
 
             // 玩家读档后主动跑一遍规则，覆盖存档里已穿高跟的场景
             HandlePostLoadGame();

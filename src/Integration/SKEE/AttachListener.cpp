@@ -31,7 +31,7 @@ void AttachListener::OnAttach(RE::TESObjectREFR* a_refr,
         return;
     }
 
-    REX::DEBUG("[Attach] refr={:08X} armor={:08X} object='{}' isFP={}",
+    LOG_DEBUG("[Attach] refr={:08X} armor={:08X} object='{}' isFP={}",
                a_refr->GetFormID(),
                a_armor->GetFormID(),
                a_object->name.c_str(),

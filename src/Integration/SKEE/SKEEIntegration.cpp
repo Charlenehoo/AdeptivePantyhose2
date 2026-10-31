@@ -99,11 +99,11 @@ void SKEEIntegration::SetAbsolute(RE::Actor& a_actor, std::string_view a_morphNa
         // 用户"日志里规则命中了但没效果"的常见根因。SKEE 未装或版本
         // 过旧时 Initialize 已打过 WARN，这里再标一次是让日志顺序上
         // 紧跟在规则命中之后，不用翻回加载期找。
-        REX::DEBUG("    [SKEE] SetAbsolute: interface null, skip morph='{}'", a_morphName);
+        LOG_DEBUG("    [SKEE] SetAbsolute: interface null, skip morph='{}'", a_morphName);
         return;
     }
 
-    REX::DEBUG("    [SKEE] SetAbsolute actor={:08X} morph='{}' value={}", a_actor.GetFormID(), a_morphName, a_value);
+    LOG_DEBUG("    [SKEE] SetAbsolute actor={:08X} morph='{}' value={}", a_actor.GetFormID(), a_morphName, a_value);
 
     // std::string_view 不保证 null 终止，转 string 之后取 c_str()。
     const std::string morphName{a_morphName};
@@ -121,11 +121,11 @@ void SKEEIntegration::SetAbsolute(RE::Actor& a_actor, std::string_view a_morphNa
 
 void SKEEIntegration::UpdateModelWeight(RE::Actor& a_actor) {
     if (m_bodyMorph == nullptr) {
-        REX::DEBUG("    [SKEE] UpdateModelWeight: interface null, skip actor={:08X}", a_actor.GetFormID());
+        LOG_DEBUG("    [SKEE] UpdateModelWeight: interface null, skip actor={:08X}", a_actor.GetFormID());
         return;
     }
 
-    REX::DEBUG("    [SKEE] UpdateModelWeight actor={:08X}", a_actor.GetFormID());
+    LOG_DEBUG("    [SKEE] UpdateModelWeight actor={:08X}", a_actor.GetFormID());
     m_bodyMorph->UpdateModelWeight(&a_actor);
 }
 
@@ -133,7 +133,7 @@ void SKEEIntegration::ApplyVertexDiff(RE::TESObjectREFR& a_refr, RE::NiAVObject&
     if (m_bodyMorph == nullptr) {
         return;
     }
-    REX::DEBUG(
+    LOG_DEBUG(
         "[ApplyOne] refr={:08X} mesh='{}' isAttaching={}", a_refr.GetFormID(), a_object.name.c_str(), a_isAttaching);
     m_bodyMorph->ApplyVertexDiff(&a_refr, &a_object, a_isAttaching);
 }
@@ -182,7 +182,7 @@ void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor) {
                 if (data.partClone->parent == nullptr) {
                     continue;
                 }
-                REX::DEBUG("[ApplyOther] refr={:08X} mesh='{}' isFP={} parent={:p}",
+                LOG_DEBUG("[ApplyOther] refr={:08X} mesh='{}' isFP={} parent={:p}",
                            a_actor.GetFormID(),
                            data.partClone->name.c_str(),
                            isFirstPerson,
