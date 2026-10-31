@@ -5,7 +5,8 @@ project(AdeptivePantyhose VERSION 3.0.4 LANGUAGES CXX)
 set(PROJECT_AUTHOR "Charlene Hoo")
 set(PROJECT_AUTHOR_EMAIL "CharleneHoo@hotmail.com")
 
-# ─────── 项目配置 ───────
+# ─────── 版本头 ───────
+# 从 Plugin.h.in 生成带版本号、项目名的 Plugin.h。
 set(VERSION_HEADER "${CMAKE_CURRENT_BINARY_DIR}/src/Plugin.h")
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Plugin.h.in"
@@ -13,7 +14,8 @@ configure_file(
     @ONLY
 )
 
-# ─────── 目标平台：SE 1.5.97 / AE 1.6.1130+ ───────
+# ─────── 目标平台 ───────
+# SE 1.5.97（默认）或 AE 1.6.1130+。
 # 注意：这两个宏必须在 add_subdirectory(CommonLibSSE) 之前定义，
 # 否则 CommonLibSSE 会按默认（SE）编译，与 AE 产物不匹配。
 option(BUILD_SKYRIM_AE "Build for Skyrim AE" OFF)
@@ -54,7 +56,8 @@ if(MSVC)
     )
 endif()
 
-# ─────── 产物名区分：SE / AE 不能互相覆盖 ───────
+# ─────── 产物名 ───────
+# SE / AE 不能互相覆盖。
 if(BUILD_SKYRIM_AE)
     set_target_properties("${PROJECT_NAME}" PROPERTIES OUTPUT_NAME "${PROJECT_NAME}_AE")
 else()
@@ -112,7 +115,7 @@ if(DEFINED ENV{MO2MODS})
         COMMENT "Copying $<TARGET_FILE_NAME:${PROJECT_NAME}> to MO2: ${MO2_PLUGIN_DIR}"
     )
 
-    # ---- PDB (Debug) ----
+    # ---- PDB（Debug）----
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         add_custom_command(
             TARGET "${PROJECT_NAME}" POST_BUILD
@@ -142,7 +145,8 @@ else()
     message(STATUS "MO2MODS environment variable not found. Skipping auto-copy.")
 endif()
 
-# ─────── Link ${PROJECT_NAME}.log into project root (Windows only) ───────
+# ─────── 日志硬链接 ───────
+# Windows only。硬链接失败时回退到复制（跨卷情况）。
 if(WIN32)
     execute_process(
         COMMAND powershell -NoProfile -Command "[Environment]::GetFolderPath('MyDocuments')"
@@ -157,8 +161,7 @@ if(WIN32)
     elseif(EXISTS "${_link}")
         message(STATUS "Log link already exists. Skipping: ${_link}")
     else()
-        # Hard link by default; falls back to a copy if the source and
-        # destination live on different volumes. No admin rights needed.
+        # 默认硬链接；跨卷时回退到复制。无需管理员权限。
         file(CREATE_LINK "${_log}" "${_link}" COPY_ON_ERROR RESULT _err)
         if(_err)
             message(WARNING "Failed to link SKSE log: ${_err}")
