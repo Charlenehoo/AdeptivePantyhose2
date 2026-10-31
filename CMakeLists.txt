@@ -144,6 +144,38 @@ else()
     message(STATUS "MO2MODS environment variable not found. Skipping auto-copy.")
 endif()
 
+# ─────── 发布打包 ───────
+# 手动触发：cmake --build --preset msvc-ae-release --target package
+# 生成 dist/AdeptivePantyhose_AE_v3.0.4.7z，内含 SKSE/... 结构，
+# 不含 PDB（PDB 只用于本地测试部署）。
+find_program(SEVEN_ZIP_EXE NAMES 7z 7za 7zz)
+if(NOT SEVEN_ZIP_EXE)
+    message(STATUS "7z not found, package target disabled")
+else()
+    set(PACKAGE_STAGE "${CMAKE_CURRENT_BINARY_DIR}/package-stage")
+    set(PACKAGE_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/dist")
+    set(PACKAGE_ARCHIVE "${PACKAGE_OUTPUT_DIR}/${PROJECT_NAME}_${TARGET_SUFFIX}_v${PROJECT_VERSION}.7z")
+
+    add_custom_target(package
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${PACKAGE_STAGE}"
+        COMMAND ${CMAKE_COMMAND} -E rm -f "${PACKAGE_ARCHIVE}"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${PACKAGE_STAGE}/SKSE/Plugins"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${PACKAGE_OUTPUT_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE:${PROJECT_NAME}>"
+        "${PACKAGE_STAGE}/SKSE/Plugins/"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+        "${PACKAGE_STAGE}"
+        COMMAND ${CMAKE_COMMAND} -E chdir "${PACKAGE_STAGE}"
+        ${SEVEN_ZIP_EXE} a -t7z -mx=7 "${PACKAGE_ARCHIVE}" .
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "${PACKAGE_STAGE}"
+        COMMENT "Packing ${PACKAGE_ARCHIVE}"
+        DEPENDS "${PROJECT_NAME}"
+        VERBATIM
+    )
+endif()
+
 # ─────── 日志硬链接 ───────
 # Windows only。硬链接失败时回退到复制（跨卷情况）。
 if(WIN32)
