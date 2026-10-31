@@ -9,6 +9,19 @@ set(PROJECT_AUTHOR_EMAIL "CharleneHoo@hotmail.com")
 # 所有 option 集中在此，configure 输出会打印每个开关的最终状态。
 # 修改后需要重新 configure（cmake --preset ...），只 cmake --build 不生效。
 
+# 详细日志：Release 优化 + DEBUG/TRACE 日志。
+# 开启后 LOG_DEBUG / LOG_TRACE 展开为 REX::DEBUG / REX::TRACE，
+# 产物名加 _Log 后缀，与普通版部署到不同 MO2 目录。
+# 关闭时 LOG_DEBUG / LOG_TRACE 展开为 ((void)0)，参数不求值、
+# 字符串不进二进制。
+option(ADEPTIVE_PANTYHOSE_DETAILED_LOG "Build with DEBUG/TRACE logging" OFF)
+
+if(ADEPTIVE_PANTYHOSE_DETAILED_LOG)
+    message(STATUS "Logging: detailed (DEBUG/TRACE included)")
+else()
+    message(STATUS "Logging: normal (INFO and above)")
+endif()
+
 # 目标平台：SE 1.5.97（默认）或 AE 1.6.1130+。
 # 必须在 add_subdirectory(CommonLibSSE) 之前定义 SKYRIM_AE 宏，
 # 否则 CommonLibSSE 按 SE 编译，与 AE 产物不匹配。
@@ -44,6 +57,12 @@ add_library(
     src/MorphRuleEngine/Leaves/FormIDRangePredicate.cpp
 )
 target_compile_features("${PROJECT_NAME}" PRIVATE cxx_std_23)
+
+if(ADEPTIVE_PANTYHOSE_DETAILED_LOG)
+    target_compile_definitions("${PROJECT_NAME}" PRIVATE
+        ADEPTIVE_PANTYHOSE_DETAILED_LOG)
+endif()
+
 target_include_directories(
     "${PROJECT_NAME}" PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src"
@@ -65,6 +84,9 @@ if(BUILD_SKYRIM_AE)
     set(TARGET_SUFFIX "AE")
 else()
     set(TARGET_SUFFIX "SE")
+endif()
+if(ADEPTIVE_PANTYHOSE_DETAILED_LOG)
+    string(APPEND TARGET_SUFFIX "_Log")
 endif()
 set_target_properties("${PROJECT_NAME}" PROPERTIES
     OUTPUT_NAME "${PROJECT_NAME}_${TARGET_SUFFIX}")
