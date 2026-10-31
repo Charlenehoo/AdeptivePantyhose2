@@ -115,6 +115,21 @@
     },
 
     {
+      "name": "msvc-ae-release-log",
+      "displayName": "MSVC Release + Detailed Log (AE)",
+      "description": "Release optimization + DEBUG/TRACE logging, for user-facing diagnostics",
+      "inherits": ["msvc-ae-release"],
+      "cacheVariables": { "ADEPTIVE_PANTYHOSE_DETAILED_LOG": "ON" }
+    },
+    {
+      "name": "msvc-se-release-log",
+      "displayName": "MSVC Release + Detailed Log (SE)",
+      "description": "Release optimization + DEBUG/TRACE logging, for user-facing diagnostics",
+      "inherits": ["msvc-se-release"],
+      "cacheVariables": { "ADEPTIVE_PANTYHOSE_DETAILED_LOG": "ON" }
+    },
+
+    {
       "name": "clang-se-debug",
       "displayName": "Clang Debug (SE 1.5.97)",
       "description": "Clang × Debug × SE，仅用于 clangd 索引",
@@ -146,6 +161,8 @@
     { "name": "msvc-se-release", "configurePreset": "msvc-se-release" },
     { "name": "msvc-ae-debug", "configurePreset": "msvc-ae-debug" },
     { "name": "msvc-ae-release", "configurePreset": "msvc-ae-release" },
+    { "name": "msvc-ae-release-log", "configurePreset": "msvc-ae-release-log" },
+    { "name": "msvc-se-release-log", "configurePreset": "msvc-se-release-log" },
     { "name": "clang-se-debug", "configurePreset": "clang-se-debug" },
     { "name": "clang-se-release", "configurePreset": "clang-se-release" },
     { "name": "clang-ae-debug", "configurePreset": "clang-ae-debug" },
