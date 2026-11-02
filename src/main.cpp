@@ -123,13 +123,16 @@ void OnMessage(SKSE::MessagingInterface::Message* a_msg) {
     switch (a_msg->type) {
         case SKSE::MessagingInterface::kPostPostLoad: {
             LOG_DEBUG("OnMessage: PostPostLoad");
-            // SKEE 接口交换推迟到 kDataLoaded...
+
+            // 请求外部插件 API，此时所有 SKSE 插件的 Load 已完成
+            SKEEIntegration::GetSingleton().Initialize();
             break;
         }
         case SKSE::MessagingInterface::kDataLoaded: {
             LOG_DEBUG("OnMessage: DataLoaded");
+
+            // 加载配置 + 挂游戏事件，此时游戏数据与事件源已就绪
             LoadMorphRules();
-            SKEEIntegration::GetSingleton().Initialize();
             RegisterEvents();
             break;
         }
