@@ -84,11 +84,23 @@ void SKEEIntegration::Initialize() {
         static_cast<IActorUpdateManager*>(exchange.interfaceMap->QueryInterface("ActorUpdateManager"));
     // NOLINTEND(cppcoreguidelines-pro-type-static-cast-downcast)
     if (updateManager != nullptr) {
-        m_updateManager = updateManager;
-        updateManager->AddInterface(&AttachListener::GetSingleton());
-        REX::INFO("SKEEIntegration: ActorUpdateManager found, AttachListener installed");
+        const auto umVersion = updateManager->GetVersion();
+        if (umVersion >= 2) {
+            m_updateManager = updateManager;
+            updateManager->AddInterface(&AttachListener::GetSingleton());
+            REX::INFO("SKEEIntegration: AttachListener installed (ActorUpdateManager version={})", umVersion);
+        } else {
+            REX::ERROR(
+                "SKEEIntegration: ActorUpdateManager version={} is too old (need >= 2). "
+                "Please upgrade RaceMenu to the latest version (0.4.20.0+). "
+                "SE 1.5.97 users must use AdeptivePantyhose v3.0.2.",
+                umVersion);
+        }
     } else {
-        REX::WARN("SKEEIntegration: ActorUpdateManager not found, AttachListener not installed");
+        REX::ERROR(
+            "SKEEIntegration: ActorUpdateManager not found. "
+            "SKEE/RaceMenu missing or too old. "
+            "SE 1.5.97 users must use v3.0.2.");
     }
 }
 
