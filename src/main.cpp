@@ -133,6 +133,7 @@ void OnMessage(SKSE::MessagingInterface::Message* a_msg) {
 
             // 加载配置 + 挂游戏事件，此时游戏数据与事件源已就绪
             LoadMorphRules();
+            SKEEIntegration::GetSingleton().SetReady();
             RegisterEvents();
             break;
         }

@@ -1,6 +1,7 @@
 // src/Integration/SKEE/SKEEIntegration.h
 #pragma once
 
+#include <atomic>
 #include <string_view>
 
 namespace RE {
@@ -73,9 +74,14 @@ public:
     // 供 AttachListener 判断"当前 mesh 是否已被 SKEE 的 OnAttach 初始化"。
     [[nodiscard]] static auto HasShapeDataRecursive(RE::NiAVObject* a_object) -> bool;
 
+    void SetReady() noexcept { m_ready.store(true, std::memory_order_release); }
+
+    [[nodiscard]] auto IsReady() const noexcept -> bool { return m_ready.load(std::memory_order_acquire); }
+
 private:
     SKEEIntegration() = default;
 
     IBodyMorphInterface* m_bodyMorph = nullptr;
     IActorUpdateManager* m_updateManager = nullptr;
+    std::atomic<bool> m_ready{false};
 };

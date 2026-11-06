@@ -27,15 +27,15 @@ void AttachListener::OnAttach(RE::TESObjectREFR* a_refr,
     }
 
     auto& skee = SKEEIntegration::GetSingleton();
-    if (!skee.IsAvailable()) {
+    if (!skee.IsAvailable() || !skee.IsReady()) {
         return;
     }
 
     LOG_DEBUG("[Attach] refr={:08X} armor={:08X} object='{}' isFP={}",
-               a_refr->GetFormID(),
-               a_armor->GetFormID(),
-               a_object->name.c_str(),
-               a_isFirstPerson);
+              a_refr->GetFormID(),
+              a_armor->GetFormID(),
+              a_object->name.c_str(),
+              a_isFirstPerson);
 
     // 1) 为当前装备求值（SSOT：Modex 的 AddWornItem 不触发 TESEquipEvent，
     //    求值必须在 OnAttach 里完成）

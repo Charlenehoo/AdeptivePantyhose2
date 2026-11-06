@@ -195,10 +195,10 @@ void SKEEIntegration::ApplyVertexDiffToWornMeshes(RE::Actor& a_actor) {
                     continue;
                 }
                 LOG_DEBUG("[ApplyOther] refr={:08X} mesh='{}' isFP={} parent={:p}",
-                           a_actor.GetFormID(),
-                           data.partClone->name.c_str(),
-                           isFirstPerson,
-                           static_cast<void*>(data.partClone->parent));
+                          a_actor.GetFormID(),
+                          data.partClone->name.c_str(),
+                          isFirstPerson,
+                          static_cast<void*>(data.partClone->parent));
                 ApplyVertexDiff(a_actor, *data.partClone, /*a_isAttaching=*/false);
             }
         };
