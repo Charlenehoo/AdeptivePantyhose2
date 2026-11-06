@@ -1,3 +1,7 @@
+> ⚠️ 本文档 §2.3 / §3 / §5.1 / §6 已被 [`onattach-thread-affinity-report-v2.md`](onattach-thread-affinity-report-v2.md) 修订。
+> SKEE 内部对 `actorMorphs` 和 `ActorUpdateManager::OnAttach` 的 observer 遍历有锁，
+> 原报告的“数据竞争”判断不成立。v3.0.6 不做线程修复。
+
 # OnAttach 线程亲和性调查报告
 
 **版本**：v3.0.5 设计期

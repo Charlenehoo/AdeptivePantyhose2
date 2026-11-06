@@ -1,0 +1,363 @@
+# OnAttach 线程亲和性调查报告 v2
+
+**版本**：v3.0.6 调查期（修订版）
+**日期**：2026-11-06
+**报告人**：Charlene Hoo
+**状态**：原报告的核心风险判断被推翻，决策：**不做线程修复**
+**关联**：
+
+- [`onattach-thread-affinity-report-2026-10-30.md`](onattach-thread-affinity-report-2026-10-30.md) — 原报告（v3.0.5 调查期），本文档修订其 §2.3 / §3 / §5.1 / §6
+- [`actorupdate-manager-abi-report-2026-11-01.md`](actorupdate-manager-abi-report-2026-11-01.md) — v3.0.6 崩溃根因，本文档与其 §4.2 的“三条修复”对齐
+- [`skee-behavior-notes.md`](skee-behavior-notes.md) — SKEE 行为笔记
+
+---
+
+## 0. 本文档与原报告的关系
+
+原报告 `onattach-thread-affinity-report-2026-10-30.md` 的结论是：
+
+1. `OnAttach` 不是主线程信号，NPC 批量加载时在工作线程派发。
+2. 工作线程执行 `SetAbsolute`（写 SKEE `actorMorphs`）和 `ApplyVertexDiff`（`DeepCopy` / `SHAPEDATA`）存在数据竞争。
+3. 6000 用户没崩是“运气”，不是设计对。
+4. 修复方向：非主线程延迟到 SKSE Task。
+
+本文档基于对 SKEE 源码的 grep 调查（`master` 与 `CommonLibSSE-NG` 双分支），**推翻原报告的核心风险判断**：
+
+- SKEE 对 `actorMorphs` 的读写有锁保护（`SimpleLocker` / `std::lock_guard(actorMorphs.m_lock)`）。
+- `ActorUpdateManager::OnAttach` 的 observer 遍历在 `m_lock` 内，工作线程之间串行。
+- `DeepCopy` 写本地 `newSkinPartition`，不碰共享对象。
+- D3D 上传有 `Renderer::GetRendererData().lock` + `m_skinInstance->lock` 保护。
+
+**结论：不做线程修复。** 原报告 §2.3 / §3 / §5.1 / §6 的风险判断和修复方向作废，以本文档为准。原报告 §1（问题描述）、§4（非人形 actor）、§7（验证清单）的事实部分仍有效，但 §4 的“性能浪费”判断在 §3.4 重新评估。
+
+---
+
+## 1. 调查方法
+
+1. 切到 `SKSE64Plugins` 仓库的 `CommonLibSSE-NG` 分支，grep 所有同步原语（`mutex` / `lock_guard` / `recursive_mutex` / `CriticalSection` / `Interlocked` 等）在 `skee64/*.cpp` / `skee64/*.h` 的分布。
+2. 切到 `master` 分支，重复同样的 grep，对比两个分支的锁覆盖差异。
+3. 对 `actorMorphs` 的所有读写点做 `git grep -n "actorMorphs"`，确认哪些在锁内、哪些不在。
+4. 对 `MorphFileCache::ApplyMorph` 的 `DeepCopy` / `SHAPEDATA` 上下文做 `git grep -n -A 40`，确认它们是否碰共享对象。
+5. 对 `ActorUpdateManager::OnAttach` 做 `git grep -n -A 15`，确认 observer 遍历是否在锁内。
+
+---
+
+## 2. SKEE 锁分布（master 与 CommonLibSSE-NG 双分支）
+
+### 2.1 `actorMorphs` 的读写锁
+
+**`actorMorphs` 的容器类型**：
+
+- **master**：`ActorMorphs actorMorphs;`（`BodyMorphInterface.h:446`），`ActorMorphs` 是 SKEE 自己的包装类型，内部有 `m_lock` 和 `m_data`。
+- **CommonLibSSE-NG**：`actorMorphs.m_lock` 是 `BodyMorphMap` 的成员（`BodyMorphInterface.cpp:152` 等），`m_data` 是 `std::unordered_map` 之类的容器。
+
+**锁的分布**：
+
+| 分支 | 锁类型 | 位置 | 保护的函数 |
+|---|---|---|---|
+| **master** | `SimpleLocker locker(&actorMorphs.m_lock)` | 146 / 152 / 158 / 178 / 196 / 214 / 248 / 267 / 284 / 300 / 314 / 324 | `Revert` / `SetMorph` / `GetMorph` / `ClearMorph` / `GetBodyMorphs` / `ClearBodyMorphNames` / `VisitMorphs` / `VisitKeys` / `VisitMorphValues` / `ClearMorphs` / `HasBodyMorph` / `HasBodyMorphName` / `HasBodyMorphKey` |
+| **master** | `actorMorphs.Lock()` / `Release()` | 58 / 74 | `DumpMorphs`（控制台命令） |
+| **master** | `SimpleLocker locker(&actorMorphs.m_lock)` | 1851 / 1864 | `VisitStrings` / `VisitActors` |
+| **CommonLibSSE-NG** | `std::lock_guard locker(actorMorphs.m_lock)` | 152 / 158 / 164 / 184 / 202 / 220 / 254 / 273 / 290 / 306 / 320 / 330 | 同上（一一对应） |
+| **CommonLibSSE-NG** | `std::lock_guard locker(actorMorphs.m_lock)` | 1867 / 1880 | `VisitStrings` / `VisitActors` |
+
+**结论**：`actorMorphs` 的**所有公开读写接口**（`SetMorph` / `ClearMorph` / `GetBodyMorphs` / `ApplyBodyMorphs` 等）都在锁内。工作线程写 `SetMorph` / `ClearMorph` 与主线程读 `GetBodyMorphs` / `ApplyBodyMorphs` 互斥。
+
+**未加锁的 `actorMorphs.m_data` 访问**：
+
+- master 1269 / 1281：`actorMorphs.m_data.find(actor->formID)`，在 `ApplyBodyMorphs` 内部。
+- CommonLibSSE-NG 对应的 `ApplyBodyMorphs` 内部也是裸访问。
+
+这两处是 `ApplyBodyMorphs` 的**内部实现**，由 SKEE 自己保证调用方在锁外调 `ApplyBodyMorphs` 时不会与 `SetMorph` 并发——但 `ApplyBodyMorphs` 本身不获取 `actorMorphs.m_lock`。这是 SKEE 的设计选择：`ApplyBodyMorphs` 的调用方（`UpdateModelWeight` / `NIOVTaskUpdateModelWeight`）在主线程，而 `SetMorph` / `ClearMorph` 的调用方（包括我们在工作线程的 `AttachListener`）在锁内。**读不锁、写锁**的模式在“读多写少、读方在主线程”的场景下是可行的，但严格来说 `ApplyBodyMorphs` 的裸读与工作线程的 `SetMorph` 写存在竞争窗口。
+
+**这个竞争窗口是否真实存在**：
+
+- `ApplyBodyMorphs` 的调用链是 `UpdateModelWeight` → `NIOVTaskUpdateModelWeight::Run` → `ApplyBodyMorphs`，全部在主线程（SKSE Task 或 `TESEquipEvent` 栈）。
+- 工作线程的 `SetMorph` / `ClearMorph` 在 `actorMorphs.m_lock` 内。
+- 主线程的 `ApplyBodyMorphs` 不拿 `actorMorphs.m_lock`，所以它和工作线程的 `SetMorph` 之间**没有互斥**。
+
+**这是原报告 §2.3 唯一说对的地方**：`ApplyBodyMorphs` 的裸读与工作线程的 `SetMorph` 写确实存在竞争。但竞争窗口极窄（`ApplyBodyMorphs` 只在主线程被调，且只在 `UpdateModelWeight` 路径），且 SKEE 长期稳定运行说明实际很少触发。
+
+### 2.2 `ActorUpdateManager::OnAttach` 的 observer 遍历锁
+
+**master**（`ActorUpdateManager.cpp:130-137`）：
+
+```cpp
+void ActorUpdateManager::OnAttach(TESObjectREFR * refr, TESObjectARMO * armor, TESObjectARMA * addon,
+                                  NiAVObject * object, bool isFirstPerson, NiNode * skeleton, NiNode * root) {
+    std::lock_guard<std::recursive_mutex> scs(m_lock);
+    for (auto observer : m_observers) {
+        observer->OnAttach(refr, armor, addon, object, isFirstPerson, skeleton, root);
+    }
+}
+```
+
+**CommonLibSSE-NG**（`ActorUpdateManager.cpp:130-137`）：
+
+```cpp
+void ActorUpdateManager::OnAttach(...) {
+    std::lock_guard<std::recursive_mutex> scs(m_lock);
+    for (auto observer : m_observers) {
+        observer->OnAttach(...);
+    }
+}
+```
+
+**关键结论**：**锁覆盖整个 observer 遍历，包括回调执行**。这意味着：
+
+- 工作线程 A 的 `OnAttach` 和工作线程 B 的 `OnAttach` 串行（都抢 `m_lock`）。
+- 工作线程的 `OnAttach` 和主线程的 `OnAttach` 串行。
+- **SKEE 的 `BodyMorphInterface::OnAttach` 和我们的 `AttachListener::OnAttach` 在同一把锁下执行，不会交错。**
+
+这是原报告 §2.3 完全没考虑到的保护。原报告假设“多个工作线程并发写 `actorMorphs`”，但 `OnAttach` 的 observer 遍历在锁内，工作线程之间是串行的。
+
+### 2.3 `MorphFileCache::ApplyMorph` 的 `DeepCopy` / `SHAPEDATA`
+
+**master**（`BodyMorphInterface.cpp:500-536`）：
+
+```cpp
+std::vector<NIOVTaskUpdateSkinPartition*> MorphFileCache::ApplyMorph(...) {
+    std::vector<NIOVTaskUpdateSkinPartition*> partitionUpdates;
+    auto execMorphUpdate = [&](NiPointer<BSGeometry> bodyGeometry) {
+        NiPointer<NiSkinInstance> skinInstance = niptr_cast<NiSkinInstance>(bodyGeometry->m_spSkinInstance);
+        if (skinInstance) {
+            NiPointer<NiSkinPartition> skinPartition = niptr_cast<NiSkinPartition>(skinInstance->m_spSkinPartition);
+            if (skinPartition) {
+                NiPointer<NiBinaryExtraData> bodyData = (NiBinaryExtraData*)NifUtils::GetExtraData(bodyGeometry, "SHAPEDATA");
+                bool existingMorphs = !isAttaching && bodyData;
+                if (bodyMorph.second.HasMorphs(refr) || existingMorphs) {
+                    if (skinPartition) {
+                        NiSkinPartition* newSkinPartition = nullptr;
+                        CALL_MEMBER_FN(skinPartition, DeepCopy)((NiObject**)&newSkinPartition);   // 写本地 newSkinPartition
+                        if (bodyData && newSkinPartition) {
+                            if (!isAttaching) {
+                                for (UInt32 p = 0; p < newSkinPartition->m_uiPartitions; ++p) {
+                                    auto& partition = newSkinPartition->m_pkPartitions[p];
+                                    UInt32 vertexSize = newSkinPartition->GetVertexSize(partition.vertexDesc);
+                                    memcpy(partition.shapeData->m_RawVertexData, bodyData->m_data, ...);   // 写本地 newSkinPartition
+                                }
+                            }
+                        }
+                        // ... SHAPEDATA 创建在后续行 ...
+                    }
+                }
+            }
+        }
+    };
+}
+```
+
+**CommonLibSSE-NG**（`BodyMorphInterface.cpp:508-547`）结构相同，只是 API 名从 `m_spSkinInstance` / `m_spSkinPartition` 变成 `skinInstance` / `skinPartition`，`DeepCopy` 变成 `CreateDeepCopy`。
+
+**关键结论**：
+
+- `DeepCopy` / `CreateDeepCopy` 写的是**本地** `newSkinPartition`，不碰共享的 `skinPartition`。
+- `memcpy` 写的是**本地** `newSkinPartition->partitions[p].buffData->rawVertexData`，不碰共享对象。
+- **`DeepCopy` 和 `memcpy` 是安全的**，即使在工作线程执行。
+
+**唯一的共享写**：`bodyGeometry->AddExtraData(bodyData)`（创建 `SHAPEDATA` 并挂到 `bodyGeometry` 的 extra data 链表）。这是唯一无锁的共享写，见 §3.1。
+
+### 2.4 D3D 上传的锁
+
+**master**（`BodyMorphInterface.cpp:1151-1152 / 1262-1263`）：
+
+```cpp
+EnterCriticalSection(&g_renderManager->lock);
+EnterCriticalSection(&m_skinInstance->lock);
+// ... D3D 上传 ...
+LeaveCriticalSection(&m_skinInstance->lock);
+LeaveCriticalSection(&g_renderManager->lock);
+```
+
+**CommonLibSSE-NG**（`BodyMorphInterface.cpp:1165-1166 / 1276-1277`）：
+
+```cpp
+REX::W32::EnterCriticalSection(&RE::BSGraphics::Renderer::GetSingleton()->GetRendererData().lock);
+REX::W32::EnterCriticalSection(&m_skinInstance->lock);
+// ... D3D 上传 ...
+REX::W32::LeaveCriticalSection(&m_skinInstance->lock);
+REX::W32::LeaveCriticalSection(&RE::BSGraphics::Renderer::GetSingleton()->GetRendererData().lock);
+```
+
+**关键结论**：D3D 上传有双锁保护（Renderer lock + SkinInstance lock），工作线程和主线程的 D3D 上传互斥。
+
+### 2.5 `defer` 参数的覆盖
+
+**master**（`BodyMorphInterface.cpp:674`）：
+
+```cpp
+defer = (*g_main)->threadId != GetCurrentThreadId();
+```
+
+**CommonLibSSE-NG**（`BodyMorphInterface.cpp:686-688`）：
+
+```cpp
+static std::uint32_t mainThreadId = GetCurrentThreadId(); // captured on first call (game load, main thread)
+defer = mainThreadId != GetCurrentThreadId();
+```
+
+**关键结论**：`ApplyMorphs` 的 `defer` 参数被**强制覆盖**为“当前线程是否主线程”。工作线程调 `ApplyVertexDiff` 时 `defer = true`，`NIOVTaskUpdateSkinPartition` 被丢到 `g_task` 队列，**D3D 上传实际在主线程执行**。
+
+这进一步说明：即使工作线程调 `ApplyVertexDiff`，D3D 上传也被 SKEE 推迟到主线程。工作线程只做 `DeepCopy` + `SHAPEDATA` 创建 + 应用 morph delta 到本地 `newSkinPartition`，这些都是本地操作。
+
+---
+
+## 3. 原报告 §2.3 的修订
+
+### 3.1 原报告的错误判断
+
+原报告 §2.3 的“三个操作在工作线程的风险”表格：
+
+| 操作 | 原报告判断 | 实际 |
+|---|---|---|
+| `EvaluateRules` → `GetWornArmor` | 中风险 | 读 actor 装备状态，与主线程装备修改竞争。**这个判断基本正确**，但 `GetWornArmor` 读的是 `BipedAnim` 的 `objects` 数组，主线程的装备修改也在 `TESEquipEvent` 栈里，竞争窗口极窄。 |
+| `SetAbsolute` → `ClearMorph` / `SetMorph` | **高风险**：修改 SKEE `actorMorphs`，主线程 `UpdateModelWeight` / `ApplyBodyMorphs` 同时遍历它 | **错误**。`actorMorphs` 的写有 `SimpleLocker` / `lock_guard` 保护。`ApplyBodyMorphs` 的裸读是 SKEE 自己的设计选择，与我们的 `SetMorph` 无互斥，但这是 SKEE 的已知行为，不是我们引入的。 |
+| `ApplyVertexDiff` → `DeepCopy` / `SHAPEDATA` | **高风险**：修改 `NiSkinPartition` 和 `NiBinaryExtraData` | **部分错误**。`DeepCopy` 写本地 `newSkinPartition`，安全。`SHAPEDATA` 创建是唯一无锁的共享写，但 SKEE 自己的 `OnAttach` 也在工作线程做，且 `OnAttach` 的 observer 遍历在 `m_lock` 内，工作线程之间串行。 |
+
+### 3.2 原报告 §3 “6000 用户没崩是运气”的修订
+
+原报告 §3：
+
+> 这是运气，不是设计对。竞争窗口存在，只是没触发崩溃。
+
+**修订**：不是运气，是 SKEE 有锁。`actorMorphs` 的写有锁，`OnAttach` 的 observer 遍历有锁，`DeepCopy` 写本地对象，D3D 上传有锁且被 `defer` 推迟到主线程。真正残留的只有 `SHAPEDATA` 创建的无锁写，以及 `ApplyBodyMorphs` 的裸读——这两者是 SKEE 自己的设计选择，不是我们引入的竞争。
+
+### 3.3 原报告 §5.1 修复方向的作废
+
+原报告 §5.1 的伪代码（非主线程延迟到 SKSE Task，执行时重新求值 + `ApplyVertexDiffToWornMeshes`）**不采用**。理由：
+
+1. `actorMorphs` 有锁，`SetAbsolute` 在工作线程是安全的。
+2. `ApplyVertexDiff` 的 `DeepCopy` 写本地对象，安全。
+3. D3D 上传被 `defer` 推迟到主线程，工作线程不碰 D3D。
+4. 延迟 Task 只会增加复杂度（Task 数量、重新求值的语义问题、`ApplyVertexDiffToWornMeshes` 的全量开销），收益是“减少我们自己的贡献”——但我们的贡献本来就不在竞争窗口里。
+
+### 3.4 原报告 §4 “非人形 actor 过滤”的重新评估
+
+原报告 §4 发现 `chicken`、`Crab2` 等非人形 actor 也在被 `EvaluateRules` + `ApplyVertexDiff`，判断为“性能浪费，不是正确性问题”。
+
+**修订**：这个判断仍然成立，但优先级更低。`HasMorphs=false` 时 SKEE 的 `ApplyMorph` 提前返回，`DeepCopy` 不执行，D3D 上传不执行。非人形 actor 的开销主要是 `EvaluateRules` 的谓词求值 + `SetAbsolute` 的 `ClearMorph` 调用，这些都在锁内，开销很小。**不纳入 v3.0.6**，留给未来版本按需处理。
+
+### 3.5 原报告 §6 “设计反思：过度坚持不跨帧”的修订
+
+原报告 §6 说：
+
+> 如果 `OnAttach` 跨线程，延迟到主线程是正确性要求，不是可选优化。
+
+**修订**：`OnAttach` 跨线程是事实，但**延迟到主线程不是正确性要求**——SKEE 已经用锁保护了工作线程路径。原报告的“设计反思”前提不成立，§6 的结论“不该防延迟执行”在“延迟执行不解决任何实际问题”的语境下失去意义。**§6 整节作废。**
+
+---
+
+## 4. 残留风险
+
+### 4.1 `NiAVObject` extra data 链表的无锁写
+
+`bodyGeometry->AddExtraData("SHAPEDATA")` 是唯一无锁的共享写。`NiAVObject` 的 extra data 链表操作没有锁保护，如果两个线程同时对同一个 `bodyGeometry` 调 `AddExtraData`，链表指针可能损坏。
+
+**实际竞争窗口**：
+
+- 工作线程的 `OnAttach` 对 NPC 的 `bodyGeometry` 做 `AddExtraData`。
+- 主线程的 `UpdateModelWeight`（只在 `OnActorLoaded` 读档时对玩家调）对玩家的 `bodyGeometry` 做 `AddExtraData`。
+- 两者 `bodyGeometry` 不同，实际不竞争。
+
+**工作线程之间的竞争**：`OnAttach` 的 observer 遍历在 `m_lock` 内，工作线程之间串行，不会并发 `AddExtraData`。
+
+**SKEE 自己的 `OnAttach` 也在工作线程做 `AddExtraData`**：我们的 `AttachListener::OnAttach` 和 SKEE 的 `BodyMorphInterface::OnAttach` 在同一把 `m_lock` 下执行，不会交错。
+
+**结论**：`AddExtraData` 的竞争窗口在实践上不存在。SKEE 自己的 `OnAttach` 也在工作线程做同样的操作，长期稳定运行是佐证。
+
+### 4.2 `ApplyBodyMorphs` 的裸读
+
+`ApplyBodyMorphs`（master 1269 / 1281，NG 对应位置）在 `actorMorphs.m_data.find(actor->formID)` 时不拿 `actorMorphs.m_lock`。这是 SKEE 自己的设计选择：`ApplyBodyMorphs` 的调用方在主线程，`SetMorph` / `ClearMorph` 的调用方在锁内。
+
+**竞争窗口**：主线程的 `ApplyBodyMorphs` 裸读与工作线程的 `SetMorph` / `ClearMorph` 写之间没有互斥。如果主线程正在遍历 `actorMorphs.m_data`，工作线程同时在另一个 actor 上写 `actorMorphs.m_data`（`unordered_map` 插入可能触发 rehash），理论上可能读到无效的迭代器。
+
+**实际风险评估**：
+
+- `ApplyBodyMorphs` 只在 `UpdateModelWeight` 路径被调，`UpdateModelWeight` 在 `OnEquipEvent`（主线程 `TESEquipEvent`）和 `OnActorLoaded`（主线程读档）里调。
+- 工作线程的 `SetMorph` 在 NPC 批量加载时触发。
+- 两者的时间窗口重叠：NPC 批量加载时，玩家可能正在穿脱装备（`TESEquipEvent` → `UpdateModelWeight`）。
+- **但 `ApplyBodyMorphs` 遍历的是 `actorMorphs.m_data` 的某个 actor 的条目，`SetMorph` 写的是另一个 actor 的条目。`unordered_map` 的插入可能触发 rehash，影响所有迭代器——这是真实风险。**
+
+**这是 SKEE 的已知行为，不是我们引入的。** SKEE 自己的 `BodyMorphInterface::OnAttach` 也在工作线程调 `ApplyVertexDiff`，`ApplyVertexDiff` 内部不调 `ApplyBodyMorphs`（它直接走 `MorphFileCache::ApplyMorphs`），所以 SKEE 自己的路径不触发这个竞争。**但我们的 `SetAbsolute` 在工作线程调 `SetMorph` / `ClearMorph`，会触发这个竞争。**
+
+**为什么 v3.0.6 不修**：
+
+1. 这是 SKEE 的内部设计问题，不是我们的代码问题。修它需要 fork SKEE 或等 SKEE 上游修复。
+2. 竞争窗口极窄（需要主线程 `ApplyBodyMorphs` 和工作线程 `SetMorph` 在同一 `unordered_map` 上同时操作）。
+3. 6000 用户无崩溃报告是实践佐证。
+4. 如果未来报告集中，可以通过“非主线程延迟 `SetAbsolute` 到主线程”缓解——但这会把 `EvaluateRules` 也拖到主线程，复杂度高，收益低。
+
+### 4.3 结论
+
+**残留风险只有 `ApplyBodyMorphs` 的裸读与工作线程 `SetMorph` 的 `unordered_map` rehash 竞争。** 这是 SKEE 的内部设计问题，我们无法在不 fork SKEE 的前提下修复。实际竞争窗口极窄，v3.0.6 接受此风险，文档记录。
+
+---
+
+## 5. 决策
+
+### 5.1 不做线程修复
+
+**理由**：
+
+1. `actorMorphs` 的写有锁，`SetAbsolute` 在工作线程是安全的。
+2. `OnAttach` 的 observer 遍历在 `m_lock` 内，工作线程之间串行。
+3. `DeepCopy` 写本地对象，安全。
+4. D3D 上传有锁，且被 `defer` 推迟到主线程。
+5. 唯一残留的 `ApplyBodyMorphs` 裸读竞争是 SKEE 的内部问题，我们无法修复。
+6. 延迟 Task 只增加复杂度，不解决实际问题。
+
+### 5.2 v3.0.6 范围收敛
+
+v3.0.6 只做 `actorupdate-manager-abi-report-2026-11-01.md` §4.2 的前两件事：
+
+1. **`Initialize()` 回 `kPostPostLoad`**（符合 SKEE 约定，解决 IED / SDS / 着色器冲突）。
+2. **`AddInterface` 前加 `GetVersion() >= 2` 门禁**（旧 SKEE 不崩，ERROR 日志引导用户下载 v3.0.2）。
+
+**不做**：
+
+- `AttachListener::OnAttach` 的线程逻辑（原报告 §5.1 的延迟 Task）。
+- 非人形 actor 过滤（原报告 §5.2）。
+- `HasShapeDataRecursive` 死代码清理（原报告 §5.3）——可以顺带做，但不是线程修复的一部分。
+
+### 5.3 SE 1.5.97 的最终决策
+
+`actorupdate-manager-abi-report` §5 的“放弃 SE 1.5.97，最终版冻结 v3.0.2”**不变**。不自 hook `AttachBipedObject`（hook 链不优雅，SKEE 没有责任链意识），走 SKEE 接口，旧 SKEE 门禁 + ERROR 日志引导 v3.0.2。
+
+---
+
+## 6. 对原报告的修订说明
+
+| 原报告章节 | 状态 | 说明 |
+|---|---|---|
+| §1 问题描述 | 有效 | `OnAttach` 跨线程的事实不变 |
+| §2.1 `OnAttach` 调用链 | 有效 | |
+| §2.2 `OnAttach` 跨线程日志证据 | 有效 | 线程 23620 / 3296 的日志仍然成立 |
+| §2.3 三个操作的风险 | **作废** | 见本文档 §3.1 |
+| §3 “6000 用户没崩是运气” | **作废** | 见本文档 §3.2 |
+| §4 非人形 actor | 事实有效，优先级降低 | 见本文档 §3.4 |
+| §5.1 延迟 Task 伪代码 | **作废** | 见本文档 §3.3 |
+| §5.2 非人形 actor 过滤 | 不纳入 v3.0.6 | 见本文档 §5.2 |
+| §5.3 顺带清理 | 可选 | 死代码清理可以做，但不是线程修复 |
+| §6 设计反思 | **作废** | 见本文档 §3.5 |
+| §7 验证清单 | 部分有效 | “工作线程分支出现 `[Task] deferred`”等延迟 Task 相关的验证项作废；主线程/工作线程的日志验证仍有效 |
+| §8 变更记录 | 需修订 | 原记录的“修复：AttachListener 增加线程检查”作废 |
+
+**原报告不再修订**，本文档取代其 §2.3 / §3 / §5.1 / §6。原报告头部建议加一行：
+
+> ⚠️ 本文档 §2.3 / §3 / §5.1 / §6 已被 [`onattach-thread-affinity-report-v2.md`](onattach-thread-affinity-report-v2.md) 修订。SKEE 内部对 `actorMorphs` 和 `OnAttach` 有锁，原报告的“数据竞争”判断不成立。
+
+---
+
+## 7. 相关文件
+
+| 文件 | 作用 |
+|---|---|
+| [`onattach-thread-affinity-report-2026-10-30.md`](onattach-thread-affinity-report-2026-10-30.md) | 原报告（v3.0.5 调查期），§2.3 / §3 / §5.1 / §6 被本文档修订 |
+| [`actorupdate-manager-abi-report-2026-11-01.md`](actorupdate-manager-abi-report-2026-11-01.md) | v3.0.6 崩溃根因，§4.2 的“三条修复”中前两条仍有效，第三条（`AttachListener` 线程检查）作废 |
+| [`skee-behavior-notes.md`](skee-behavior-notes.md) | SKEE 行为笔记，§2.3 需补充“SKEE 对 `actorMorphs` 和 `OnAttach` 有锁” |
+| `skee64/BodyMorphInterface.cpp`（master + CommonLibSSE-NG） | `actorMorphs` 锁、`ApplyMorph` 的 `DeepCopy` / `SHAPEDATA`、D3D 上传锁、`defer` 覆盖 |
+| `skee64/ActorUpdateManager.cpp`（master + CommonLibSSE-NG） | `OnAttach` observer 遍历锁 |
+
+---
+
+**报告结束。**
